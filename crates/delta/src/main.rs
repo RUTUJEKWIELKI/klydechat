@@ -79,11 +79,14 @@ pub async fn web() -> Rocket<Build> {
     // Ratelimits
     let ratelimits = ratelimiter::RatelimitStorage::new(util::ratelimits::DeltaRatelimits);
 
+    let prefix = std::env::var("SERVICE_PATH_PREFIX").unwrap_or_default();
+    let base = if prefix.is_empty() { "/" } else { &prefix };
+
     routes::mount(config, rocket)
         .attach(prometheus.clone())
         .mount("/metrics", prometheus)
-        .mount("/", rocket_cors::catch_all_options_routes())
-        .mount("/", ratelimiter::routes())
+        .mount(base, rocket_cors::catch_all_options_routes())
+        .mount(base, ratelimiter::routes())
         .mount("/swagger/", swagger)
         .manage(db)
         .manage(amqp)
@@ -95,7 +98,10 @@ pub async fn web() -> Rocket<Build> {
         .configure(rocket::Config {
             limits: rocket::data::Limits::default().limit("string", 5.megabytes()),
             address: Ipv4Addr::new(0, 0, 0, 0).into(),
-            port: 14702,
+            port: std::env::var("PORT")
+                .ok()
+                .and_then(|port| port.parse().ok())
+                .unwrap_or(14702),
             ip_header: Some("X-Forwarded-For".into()),
             ..Default::default()
         })

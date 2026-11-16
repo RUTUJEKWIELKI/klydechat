@@ -1,0 +1,47 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "delta": {
+      "root": "crates/delta",
+      "runtime": "rust"
+    },
+    "bonfire": {
+      "root": "crates/bonfire",
+      "runtime": "rust"
+    },
+    "autumn": {
+      "root": "crates/services/autumn",
+      "runtime": "rust"
+    },
+    "january": {
+      "root": "crates/services/january",
+      "runtime": "rust"
+    },
+    "docs": {
+      "root": "docs",
+      "framework": "docusaurus-2"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": { "service": "delta" }
+    },
+    {
+      "source": "/ws",
+      "destination": { "service": "bonfire" }
+    },
+    {
+      "source": "/autumn/(.*)",
+      "destination": { "service": "autumn" }
+    },
+    {
+      "source": "/january/(.*)",
+      "destination": { "service": "january" }
+    },
+    {
+      "source": "/docs/(.*)",
+      "destination": { "service": "docs" }
+    }
+  ]
+}

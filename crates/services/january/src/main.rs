@@ -61,10 +61,19 @@ async fn main() -> Result<(), std::io::Error> {
         .merge(Scalar::with_url("/scalar", ApiDoc::openapi()))
         .nest("/", api::router().await);
 
+    let app = match std::env::var("SERVICE_PATH_PREFIX") {
+        Ok(prefix) if !prefix.is_empty() => Router::new().nest(&prefix, app),
+        _ => app,
+    };
+
     // Configure TCP listener and bind
-    tracing::info!("Listening on 0.0.0.0:14705");
-    tracing::info!("Play around with the API: http://localhost:14705/scalar");
-    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14705));
+    let port: u16 = std::env::var("PORT")
+        .ok()
+        .and_then(|port| port.parse().ok())
+        .unwrap_or(14705);
+    tracing::info!("Listening on 0.0.0.0:{port}");
+    tracing::info!("Play around with the API: http://localhost:{port}/scalar");
+    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, port));
     let listener = TcpListener::bind(&address).await?;
     axum::serve(
         listener,
