@@ -21,7 +21,7 @@ use revolt_files::{
 use revolt_result::{create_error, Error, Result, ToRevoltError};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
-use stoat_otel::WideContextRepository;
+use klyde_otel::WideContextRepository;
 use tempfile::NamedTempFile;
 use tokio::time::Instant;
 use tower_http::cors::{AllowHeaders, Any, CorsLayer};

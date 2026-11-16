@@ -174,7 +174,7 @@ pub static DISCRIMINATOR_SEARCH_SPACE: Lazy<HashSet<String>> = Lazy::new(|| {
 });
 
 static BLOCKED_USERNAME_PATTERNS: Lazy<Regex> = Lazy::new(|| {
-    RegexBuilder::new("`{3}|(discord|rvlt|guilded|stt)\\.gg|(revolt|stoat)\\.chat|https?:\\/\\/")
+    RegexBuilder::new("`{3}|(discord|rvlt|guilded|stt)\\.gg|(revolt|klyde)\\.chat|https?:\\/\\/")
         .case_insensitive(true)
         .build()
         .unwrap()
@@ -318,7 +318,7 @@ impl User {
 
         let username_lowercase = username.to_lowercase();
 
-        const BLOCKED_USERNAMES: &[&str] = &["admin", "revolt", "stoat"];
+        const BLOCKED_USERNAMES: &[&str] = &["admin", "revolt", "klyde"];
 
         if BLOCKED_USERNAMES.contains(&username_lowercase.as_str())
             || BLOCKED_USERNAME_PATTERNS.is_match(username)
@@ -910,12 +910,12 @@ mod tests {
     fn username_validation_blocked_names() {
         let username_admin = "Admin";
         let username_revolt = "Revolt";
-        let username_stoat = "Stoat";
+        let username_klyde = "Klyde";
         let username_allowed = "Allowed";
 
         assert!(User::validate_username(username_admin).is_err());
         assert!(User::validate_username(username_revolt).is_err());
-        assert!(User::validate_username(username_stoat).is_err());
+        assert!(User::validate_username(username_klyde).is_err());
         assert!(User::validate_username(username_allowed).is_ok());
     }
 
@@ -927,7 +927,7 @@ mod tests {
         let username_guilded = "guilded.gg_test";
         let username_stt = "stt.gg_test";
         let username_revolt = "revolt.chat_test";
-        let username_stoat = "stoat.chat_test";
+        let username_klyde = "klyde.chat_test";
         let username_http = "http://_test";
         let username_https = "https://_test";
 
@@ -937,7 +937,7 @@ mod tests {
         assert!(User::validate_username(username_guilded).is_err());
         assert!(User::validate_username(username_stt).is_err());
         assert!(User::validate_username(username_revolt).is_err());
-        assert!(User::validate_username(username_stoat).is_err());
+        assert!(User::validate_username(username_klyde).is_err());
         assert!(User::validate_username(username_http).is_err());
         assert!(User::validate_username(username_https).is_err());
     }
@@ -992,7 +992,7 @@ mod tests {
             assert_eq!("Test2", created_clean.username);
 
             let created_invalid_result: Result<_> =
-                User::create(&db, "stoat.chat".to_string(), None, None).await;
+                User::create(&db, "klyde.chat".to_string(), None, None).await;
 
             assert!(created_invalid_result.is_err());
 

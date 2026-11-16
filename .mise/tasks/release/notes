@@ -5,10 +5,10 @@
 set -euo pipefail
 error() { echo "$1" >&2; exit 1; }
 
-OUTLINE_URL="${RELEASE_OUTLINE_URL:-https://outline.stoatinternal.com}"
+OUTLINE_URL="${RELEASE_OUTLINE_URL:-https://outline.klydeinternal.com}"
 COLLECTION="${RELEASE_OUTLINE_COLLECTION:-Code Changelogs}"
 PROJECT="${RELEASE_PROJECT:-$(basename "$(git remote get-url origin)" .git)}"
-REPO_URL="${RELEASE_REPO_URL:-https://github.com/stoatchat/$PROJECT}"
+REPO_URL="${RELEASE_REPO_URL:-https://github.com/klydechat/$PROJECT}"
 
 outline() {
   curl -sS -X POST "$OUTLINE_URL/api/$1" \

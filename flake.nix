@@ -1,5 +1,5 @@
 {
-  description = "Development environment for stoatchat";
+  description = "Development environment for klydechat";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

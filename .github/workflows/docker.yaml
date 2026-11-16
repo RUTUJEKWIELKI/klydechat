@@ -117,13 +117,13 @@ jobs:
           cache-from: type=gha,scope=buildx-base-multi-arch
           cache-to: type=gha,scope=buildx-base-multi-arch,mode=max
 
-      # stoatchat/api
+      # klydechat/api
       - name: Docker meta
         id: meta-delta
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/api
+            ghcr.io/klydechat/api
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
@@ -137,13 +137,13 @@ jobs:
             BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/base:${{ steps.base.outputs.tag }}
           labels: ${{ steps.meta-delta.outputs.labels }}
 
-      # stoatchat/events
+      # klydechat/events
       - name: Docker meta
         id: meta-bonfire
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/events
+            ghcr.io/klydechat/events
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
@@ -157,13 +157,13 @@ jobs:
             BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/base:${{ steps.base.outputs.tag }}
           labels: ${{ steps.meta-bonfire.outputs.labels }}
 
-      # stoatchat/file-server
+      # klydechat/file-server
       - name: Docker meta
         id: meta-autumn
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/file-server
+            ghcr.io/klydechat/file-server
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
@@ -177,13 +177,13 @@ jobs:
             BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/base:${{ steps.base.outputs.tag }}
           labels: ${{ steps.meta-autumn.outputs.labels }}
 
-      # stoatchat/proxy
+      # klydechat/proxy
       - name: Docker meta
         id: meta-january
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/proxy
+            ghcr.io/klydechat/proxy
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
@@ -197,13 +197,13 @@ jobs:
             BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/base:${{ steps.base.outputs.tag }}
           labels: ${{ steps.meta-january.outputs.labels }}
 
-      # stoatchat/gifbox
+      # klydechat/gifbox
       - name: Docker meta
         id: meta-gifbox
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/gifbox
+            ghcr.io/klydechat/gifbox
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
@@ -217,13 +217,13 @@ jobs:
             BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/base:${{ steps.base.outputs.tag }}
           labels: ${{ steps.meta-gifbox.outputs.labels }}
 
-      # stoatchat/crond
+      # klydechat/crond
       - name: Docker meta
         id: meta-crond
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/crond
+            ghcr.io/klydechat/crond
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
@@ -237,13 +237,13 @@ jobs:
             BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/base:${{ steps.base.outputs.tag }}
           labels: ${{ steps.meta-crond.outputs.labels }}
 
-      # stoatchat/pushd
+      # klydechat/pushd
       - name: Docker meta
         id: meta-pushd
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/pushd
+            ghcr.io/klydechat/pushd
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
@@ -257,13 +257,13 @@ jobs:
             BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/base:${{ steps.base.outputs.tag }}
           labels: ${{ steps.meta-pushd.outputs.labels }}
 
-      # stoatchat/voice-ingress
+      # klydechat/voice-ingress
       - name: Docker meta
         id: meta-voice-ingress
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/stoatchat/voice-ingress
+            ghcr.io/klydechat/voice-ingress
           flavor: latest=${{ steps.release.outputs.latest }}
       - name: Publish
         uses: docker/build-push-action@v4
