@@ -36,8 +36,8 @@ jobs:
       - id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.GH_STOAT_RELEASE_APP_ID }}
-          private-key: ${{ secrets.GH_STOAT_RELEASE_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.GH_KLYDE_RELEASE_APP_ID }}
+          private-key: ${{ secrets.GH_KLYDE_RELEASE_APP_PRIVATE_KEY }}
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -55,8 +55,8 @@ jobs:
         env:
           RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
-          git config user.name 'stoat-release[bot]'
-          git config user.email '245062572+stoat-release[bot]@users.noreply.github.com'
+          git config user.name 'klyde-release[bot]'
+          git config user.email '245062572+klyde-release[bot]@users.noreply.github.com'
           version=$(mise run release:bump "$RELEASE_TYPE")
           echo "version=$version" >> "$GITHUB_OUTPUT"
           git push origin HEAD

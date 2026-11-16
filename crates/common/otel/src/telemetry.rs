@@ -49,13 +49,13 @@ impl Telemetry {
             .build();
 
         #[cfg(feature = "axum")]
-        let _ = WIDE_LOGGER.set(logger_provider.logger("stoat_otel::wide"));
+        let _ = WIDE_LOGGER.set(logger_provider.logger("klyde_otel::wide"));
 
         let otel_layer =
             OpenTelemetryTracingBridge::new(&logger_provider).with_filter(export_filter());
 
         let trace_layer = tracing_opentelemetry::layer()
-            .with_tracer(tracer_provider.tracer("stoat_otel"))
+            .with_tracer(tracer_provider.tracer("klyde_otel"))
             .with_filter(export_filter());
 
         let fmt_layer = tracing_subscriber::fmt::layer()

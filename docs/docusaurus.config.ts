@@ -4,19 +4,19 @@ import type * as Preset from '@docusaurus/preset-classic';
 import type { ScalarOptions } from '@scalar/docusaurus';
 
 const config: Config = {
-  title: 'Stoat Developers',
-  tagline: 'Developer documentation for Stoat',
-  favicon: 'https://stoat.chat/favicon-stoat.svg',
+  title: 'Klyde Developers',
+  tagline: 'Developer documentation for Klyde',
+  favicon: 'https://klyde.chat/favicon-klyde.svg',
 
   future: {
     v4: true,
   },
 
-  url: 'https://developers.stoat.chat',
+  url: 'https://developers.klyde.chat',
   baseUrl: '/',
 
-  organizationName: 'stoatchat',
-  projectName: 'stoatchat',
+  organizationName: 'klydechat',
+  projectName: 'klydechat',
 
   onBrokenLinks: 'throw',
 
@@ -33,7 +33,7 @@ const config: Config = {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
           editUrl:
-            'https://github.com/stoatchat/stoatchat/tree/main/docs/',
+            'https://github.com/klydechat/klydechat/tree/main/docs/',
         },
       } satisfies Preset.Options,
     ],
@@ -47,7 +47,7 @@ const config: Config = {
         route: '/api-reference',
         showNavLink: true,
         configuration: {
-          url: 'https://stoat.chat/api/openapi.json',
+          url: 'https://klyde.chat/api/openapi.json',
         },
       } as ScalarOptions,
     ],
@@ -56,7 +56,7 @@ const config: Config = {
       {
         fromExtensions: ['html', 'htm'],
         redirects: [
-          // legacy docs website (stoatchat/developer-wiki)
+          // legacy docs website (klydechat/developer-wiki)
           {
             from: '/developers/api/reference.html',
             to: '/api-reference',
@@ -81,7 +81,7 @@ const config: Config = {
     },
     navbar: {
       logo: {
-        alt: 'Stoat for Developers',
+        alt: 'Klyde for Developers',
         src: '/img/navbar.light.svg',
         srcDark: '/img/navbar.dark.svg'
       },
@@ -92,7 +92,7 @@ const config: Config = {
           label: 'Docs'
         },
         {
-          href: 'https://github.com/stoatchat',
+          href: 'https://github.com/klydechat',
           label: 'GitHub',
           position: 'right',
         },
@@ -106,11 +106,11 @@ const config: Config = {
           items: [
             {
               label: 'Source Code',
-              href: 'https://github.com/stoatchat'
+              href: 'https://github.com/klydechat'
             },
             {
               label: 'Help Translate',
-              href: 'https://translate.stoat.chat'
+              href: 'https://translate.klyde.chat'
             },
           ],
         },
@@ -119,31 +119,31 @@ const config: Config = {
           items: [
             {
               label: 'About',
-              href: 'https://stoat.chat/about'
+              href: 'https://klyde.chat/about'
             },
             {
               label: 'Blog and Changelogs',
-              href: 'https://stoat.chat/updates'
+              href: 'https://klyde.chat/updates'
             },
             {
               label: 'Contact',
-              href: 'https://support.stoat.chat'
+              href: 'https://support.klyde.chat'
             },
           ],
         },
         {
-          title: 'Stoat on Socials',
+          title: 'Klyde on Socials',
           items: [
             {
               label: 'Bluesky',
-              href: 'https://bsky.app/profile/stoat.chat'
+              href: 'https://bsky.app/profile/klyde.chat'
             },
             {
               label: 'Reddit',
-              href: 'https://reddit.com/r/stoatchat'
+              href: 'https://reddit.com/r/klydechat'
             },
             {
-              label: 'Stoat Server',
+              label: 'Klyde Server',
               href: 'https://stt.gg/Testers'
             },
           ],
@@ -153,19 +153,19 @@ const config: Config = {
           items: [
             {
               label: 'Community Guidelines',
-              href: 'https://stoat.chat/legal/community-guidelines'
+              href: 'https://klyde.chat/legal/community-guidelines'
             },
             {
               label: 'Terms of Service',
-              href: 'https://stoat.chat/legal/terms'
+              href: 'https://klyde.chat/legal/terms'
             },
             {
               label: 'Privacy Policy',
-              href: 'https://stoat.chat/legal/privacy'
+              href: 'https://klyde.chat/legal/privacy'
             },
             {
               label: 'Imprint',
-              href: 'https://stoat.chat/legal/imprint'
+              href: 'https://klyde.chat/legal/imprint'
             },
           ],
         },

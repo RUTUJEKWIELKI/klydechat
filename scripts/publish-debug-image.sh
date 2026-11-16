@@ -20,25 +20,25 @@ fi
 
 TAG=$1-debug
 echo "Building images, will tag for ghcr.io with $TAG!"
-docker build -t ghcr.io/stoatchat/base:latest -f Dockerfile.useCurrentArch .
-docker build -t ghcr.io/stoatchat/server:$TAG - < crates/delta/Dockerfile
-docker build -t ghcr.io/stoatchat/bonfire:$TAG - < crates/bonfire/Dockerfile
-docker build -t ghcr.io/stoatchat/autumn:$TAG - < crates/services/autumn/Dockerfile
-docker build -t ghcr.io/stoatchat/january:$TAG - < crates/services/january/Dockerfile
-docker build -t ghcr.io/stoatchat/gifbox:$TAG - < crates/services/gifbox/Dockerfile
-docker build -t ghcr.io/stoatchat/crond:$TAG - < crates/daemons/crond/Dockerfile
-docker build -t ghcr.io/stoatchat/pushd:$TAG - < crates/daemons/pushd/Dockerfile
-docker build -t ghcr.io/stoatchat/voice-ingress:$TAG - < crates/daemons/voice-ingress/Dockerfile
+docker build -t ghcr.io/klydechat/base:latest -f Dockerfile.useCurrentArch .
+docker build -t ghcr.io/klydechat/server:$TAG - < crates/delta/Dockerfile
+docker build -t ghcr.io/klydechat/bonfire:$TAG - < crates/bonfire/Dockerfile
+docker build -t ghcr.io/klydechat/autumn:$TAG - < crates/services/autumn/Dockerfile
+docker build -t ghcr.io/klydechat/january:$TAG - < crates/services/january/Dockerfile
+docker build -t ghcr.io/klydechat/gifbox:$TAG - < crates/services/gifbox/Dockerfile
+docker build -t ghcr.io/klydechat/crond:$TAG - < crates/daemons/crond/Dockerfile
+docker build -t ghcr.io/klydechat/pushd:$TAG - < crates/daemons/pushd/Dockerfile
+docker build -t ghcr.io/klydechat/voice-ingress:$TAG - < crates/daemons/voice-ingress/Dockerfile
 
 if [ "$DEBUG" = "true" ]; then
   git restore Cargo.toml
 fi
 
-docker push ghcr.io/stoatchat/server:$TAG
-docker push ghcr.io/stoatchat/bonfire:$TAG
-docker push ghcr.io/stoatchat/autumn:$TAG
-docker push ghcr.io/stoatchat/january:$TAG
-docker push ghcr.io/stoatchat/gifbox:$TAG
-docker push ghcr.io/stoatchat/crond:$TAG
-docker push ghcr.io/stoatchat/pushd:$TAG
-docker push ghcr.io/stoatchat/voice-ingress:$TAG
+docker push ghcr.io/klydechat/server:$TAG
+docker push ghcr.io/klydechat/bonfire:$TAG
+docker push ghcr.io/klydechat/autumn:$TAG
+docker push ghcr.io/klydechat/january:$TAG
+docker push ghcr.io/klydechat/gifbox:$TAG
+docker push ghcr.io/klydechat/crond:$TAG
+docker push ghcr.io/klydechat/pushd:$TAG
+docker push ghcr.io/klydechat/voice-ingress:$TAG

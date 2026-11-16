@@ -36,8 +36,8 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let _telemetry = stoat_otel::init(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-    info!(version = env!("CARGO_PKG_VERSION"), awawa = true, "Starting the Stoat file server!");
+    let _telemetry = klyde_otel::init(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+    info!(version = env!("CARGO_PKG_VERSION"), awawa = true, "Starting the Klyde file server!");
 
     revolt_config::config().await;
     clamav::init().await;
@@ -100,8 +100,8 @@ async fn main() -> Result<(), std::io::Error> {
             state.clone(),
             ratelimiter::ratelimit_middleware,
         ))
-        .layer(CatchPanicLayer::custom(stoat_otel::middleware::axum::panic_response))
-        .layer(from_fn(stoat_otel::middleware::axum::wide_events))
+        .layer(CatchPanicLayer::custom(klyde_otel::middleware::axum::panic_response))
+        .layer(from_fn(klyde_otel::middleware::axum::wide_events))
         .with_state(state);
 
     let app = match std::env::var("SERVICE_PATH_PREFIX") {
