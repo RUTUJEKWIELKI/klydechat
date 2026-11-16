@@ -15,24 +15,29 @@
       ]
     },
     "bonfire": {
-      "root": "crates/bonfire",
-      "runtime": "rust"
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.bonfire"
     },
     "autumn": {
-      "root": "crates/services/autumn",
-      "runtime": "rust"
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.autumn"
     },
     "january": {
-      "root": "crates/services/january",
-      "runtime": "rust"
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.january"
     },
     "gifbox": {
-      "root": "crates/services/gifbox",
-      "runtime": "rust"
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.gifbox"
     },
     "voice-ingress": {
-      "root": "crates/daemons/voice-ingress",
-      "runtime": "rust"
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.voice-ingress"
     },
     "docs": {
       "root": "docs",
