@@ -23,8 +23,12 @@ async fn main() -> Result<(), rocket::Error> {
         .manage(voice_client)
         .manage(amqp)
         .mount("/", routes![api::ingress])
+        .mount("/ingress", routes![api::ingress])
         .configure(Config {
-            port: 8500,
+            port: std::env::var("PORT")
+                .ok()
+                .and_then(|port| port.parse().ok())
+                .unwrap_or(8500),
             address: Ipv4Addr::new(0, 0, 0, 0).into(),
             ..Default::default()
         })

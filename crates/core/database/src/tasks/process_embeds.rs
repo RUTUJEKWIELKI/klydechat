@@ -53,9 +53,15 @@ pub async fn worker(db: Database) {
 
         spawn(async move {
             let config = config().await;
+
+            // Prefer the Vercel service binding for January, falling back to
+            // the configured public host for self-hosted deployments.
+            let january =
+                std::env::var("JANUARY_URL").unwrap_or_else(|_| config.hosts.january.clone());
+
             let embeds = generate(
                 task.content,
-                &config.hosts.january,
+                &january,
                 config.features.limits.global.message_embeds,
                 semaphore,
             )

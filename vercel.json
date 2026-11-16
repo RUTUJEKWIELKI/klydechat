@@ -2,8 +2,17 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
     "delta": {
-      "root": "crates/delta",
-      "runtime": "rust"
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.delta",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "january",
+          "format": "url",
+          "env": "JANUARY_URL"
+        }
+      ]
     },
     "bonfire": {
       "root": "crates/bonfire",
@@ -17,9 +26,29 @@
       "root": "crates/services/january",
       "runtime": "rust"
     },
+    "gifbox": {
+      "root": "crates/services/gifbox",
+      "runtime": "rust"
+    },
+    "voice-ingress": {
+      "root": "crates/daemons/voice-ingress",
+      "runtime": "rust"
+    },
     "docs": {
       "root": "docs",
       "framework": "docusaurus-2"
+    }
+  },
+  "daemons": {
+    "pushd": {
+      "root": ".",
+      "entrypoint": "Dockerfile.pushd",
+      "instances": { "iad1": 1 }
+    },
+    "crond": {
+      "root": ".",
+      "entrypoint": "Dockerfile.crond",
+      "instances": { "iad1": 1 }
     }
   },
   "rewrites": [
@@ -32,12 +61,24 @@
       "destination": { "service": "bonfire" }
     },
     {
+      "source": "/ws/(.*)",
+      "destination": { "service": "bonfire" }
+    },
+    {
       "source": "/autumn/(.*)",
       "destination": { "service": "autumn" }
     },
     {
       "source": "/january/(.*)",
       "destination": { "service": "january" }
+    },
+    {
+      "source": "/gifbox/(.*)",
+      "destination": { "service": "gifbox" }
+    },
+    {
+      "source": "/ingress/(.*)",
+      "destination": { "service": "voice-ingress" }
     },
     {
       "source": "/docs/(.*)",

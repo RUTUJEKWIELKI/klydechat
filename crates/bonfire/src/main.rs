@@ -29,7 +29,10 @@ async fn main() {
 
     // Setup a TCP listener to accept WebSocket connections on.
     // By default, we bind to port 14703 on all interfaces.
-    let bind = env::var("HOST").unwrap_or_else(|_| "0.0.0.0:14703".into());
+    let bind = match env::var("PORT") {
+        Ok(port) => format!("0.0.0.0:{port}"),
+        Err(_) => env::var("HOST").unwrap_or_else(|_| "0.0.0.0:14703".into()),
+    };
     info!("Listening on host {bind}");
     let try_socket = TcpListener::bind(bind).await;
     let listener = try_socket.expect("Failed to bind");

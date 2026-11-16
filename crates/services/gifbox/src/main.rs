@@ -103,10 +103,19 @@ async fn main() -> Result<(), std::io::Error> {
         ))
         .with_state(state);
 
+    // Serve the API both at its public path prefix and at the root, so that
+    // public traffic (routed with the prefix intact) and internal service
+    // binding calls (which use the bare root) both resolve.
+    let app = Router::new().nest("/gifbox", app.clone()).merge(app);
+
     // Configure TCP listener and bind
-    tracing::info!("Listening on 0.0.0.0:14706");
-    tracing::info!("Play around with the API: http://localhost:14706/scalar");
-    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14706));
+    let port: u16 = std::env::var("PORT")
+        .ok()
+        .and_then(|port| port.parse().ok())
+        .unwrap_or(14706);
+    tracing::info!("Listening on 0.0.0.0:{port}");
+    tracing::info!("Play around with the API: http://localhost:{port}/scalar");
+    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, port));
     let listener = TcpListener::bind(&address).await?;
     axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await
 }
