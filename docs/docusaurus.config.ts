@@ -13,7 +13,7 @@ const config: Config = {
   },
 
   url: 'https://developers.klyde.chat',
-  baseUrl: '/',
+  baseUrl: '/docs/',
 
   organizationName: 'klydechat',
   projectName: 'klydechat',
