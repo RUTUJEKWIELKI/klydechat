@@ -1,4 +1,4 @@
-name: stoat-backend
+name: klyde-backend
 
 services:
   # Redis
@@ -84,7 +84,7 @@ services:
 
   # LiveKit
   livekit:
-    image: ghcr.io/stoatchat/livekit-server:v1.9.13
+    image: ghcr.io/klydechat/livekit-server:v1.9.13
     command: --config /etc/livekit.yml
     network_mode: "host"
     volumes:

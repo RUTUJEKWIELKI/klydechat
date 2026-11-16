@@ -208,4 +208,4 @@ revolt-ratelimits = { version = "0.16.0", path = "crates/core/ratelimits" }
 revolt-result = { version = "0.16.0", path = "crates/core/result" }
 
 # Local packages (unpublished)
-stoat-otel = { path = "crates/common/otel" }
+klyde-otel = { path = "crates/common/otel" }

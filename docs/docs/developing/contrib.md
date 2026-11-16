@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Contribution Guide
 
-This is the contribution guide for developers wanting to help out with Stoat.
+This is the contribution guide for developers wanting to help out with Klyde.
 
 ## Repository Lifecycle
 
@@ -44,6 +44,6 @@ Any issues marked with "Future Work" or with a milestone greater than the curren
 
 Please read the additional relevant guidance on:
 
-- [Developing for Backend](https://github.com/stoatchat/backend?tab=readme-ov-file#development-guide) (contrib guide TBA)
-- [Contributing to Frontend](https://stoatchat.github.io/for-web/contribution-guide.html)
-- [Contributing to Android](https://stoatchat.github.io/for-android/contributing/guidelines/)
+- [Developing for Backend](https://github.com/klydechat/backend?tab=readme-ov-file#development-guide) (contrib guide TBA)
+- [Contributing to Frontend](https://klydechat.github.io/for-web/contribution-guide.html)
+- [Contributing to Android](https://klydechat.github.io/for-android/contributing/guidelines/)

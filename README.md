@@ -1,15 +1,15 @@
 <div align="center">
 <h1>
-  Stoat Backend
+  Klyde Backend
   
-  [![Stars](https://img.shields.io/github/stars/stoatchat/stoatchat?style=flat-square&logoColor=white)](https://github.com/stoatchat/stoatchat/stargazers)
-  [![Forks](https://img.shields.io/github/forks/stoatchat/stoatchat?style=flat-square&logoColor=white)](https://github.com/stoatchat/stoatchat/network/members)
-  [![Pull Requests](https://img.shields.io/github/issues-pr/stoatchat/stoatchat?style=flat-square&logoColor=white)](https://github.com/stoatchat/stoatchat/pulls)
-  [![Issues](https://img.shields.io/github/issues/stoatchat/stoatchat?style=flat-square&logoColor=white)](https://github.com/stoatchat/stoatchat/issues)
-  [![Contributors](https://img.shields.io/github/contributors/stoatchat/stoatchat?style=flat-square&logoColor=white)](https://github.com/stoatchat/stoatchat/graphs/contributors)
-  [![License](https://img.shields.io/github/license/stoatchat/stoatchat?style=flat-square&logoColor=white)](https://github.com/stoatchat/stoatchat/blob/main/LICENSE)
+  [![Stars](https://img.shields.io/github/stars/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/stargazers)
+  [![Forks](https://img.shields.io/github/forks/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/network/members)
+  [![Pull Requests](https://img.shields.io/github/issues-pr/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/pulls)
+  [![Issues](https://img.shields.io/github/issues/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/issues)
+  [![Contributors](https://img.shields.io/github/contributors/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/graphs/contributors)
+  [![License](https://img.shields.io/github/license/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/blob/main/LICENSE)
 </h1>
-The services and libraries that power the Stoat service.<br/>
+The services and libraries that power the Klyde service.<br/>
 <br/>
 
 | Crate              | Path                                               | Description                         |                                                                                                                                                                                                                                                                                                           |
@@ -39,7 +39,7 @@ Rust 1.86.0 or higher.
 
 ## Development Guide
 
-Before contributing, make yourself familiar with [our contribution guidelines](https://developers.stoat.chat/developing/contrib/) and the [technical documentation for this project](https://developers.stoat.chat/).
+Before contributing, make yourself familiar with [our contribution guidelines](https://developers.klyde.chat/developing/contrib/) and the [technical documentation for this project](https://developers.klyde.chat/).
 
 Before getting started, you'll want to install:
 
@@ -70,8 +70,8 @@ As a heads-up, the development environment uses the following ports:
 Now you can clone and build the project:
 
 ```bash
-git clone https://github.com/stoatchat/stoatchat stoat-backend
-cd stoat-backend
+git clone https://github.com/RUTUJEKWIELKI/klydechat klyde-backend
+cd klyde-backend
 mise install
 mise build
 ```
@@ -160,9 +160,9 @@ You can start a web client by doing the following in another terminal:
 corepack enable
 
 # clone the web client and run it:
-git clone --recursive https://github.com/stoatchat/for-web stoat-web
-cd stoat-web
-# refer to stoat-web/README.md for startup, creating an account and loging in
+git clone --recursive https://github.com/RUTUJEKWIELKI/klydefor-web klyde-web
+cd klyde-web
+# refer to klyde-web/README.md for startup, creating an account and loging in
 ```
 
 When signing up, go to http://localhost:14080 to find confirmation/password reset emails.
@@ -213,7 +213,7 @@ Tag and push a new release by running:
 just release
 ```
 
-If you have bumped the crate versions, proceed to [GitHub releases](https://github.com/stoatchat/stoatchat/releases/new) to create a changelog.
+If you have bumped the crate versions, proceed to [GitHub releases](https://github.com/RUTUJEKWIELKI/klydechat/releases/new) to create a changelog.
 
 ## Testing
 
@@ -232,6 +232,6 @@ TEST_DB=MONGODB cargo nextest run
 
 ## License
 
-The Stoat backend is generally licensed under the [GNU Affero General Public License v3.0](https://github.com/stoatchat/stoatchat/blob/main/LICENSE).
+The Klyde backend is generally licensed under the [GNU Affero General Public License v3.0](https://github.com/RUTUJEKWIELKI/klydechat/blob/main/LICENSE).
 
 **Individual crates may supply their own licenses!**
