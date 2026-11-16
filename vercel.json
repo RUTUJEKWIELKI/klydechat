@@ -2,8 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
     "delta": {
-      "root": "crates/delta",
-      "runtime": "rust",
+      "root": ".",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.delta",
       "bindings": [
         {
           "type": "service",
@@ -40,13 +41,13 @@
   },
   "daemons": {
     "pushd": {
-      "root": "crates/daemons/pushd",
-      "entrypoint": "Dockerfile",
+      "root": ".",
+      "entrypoint": "Dockerfile.pushd",
       "instances": { "iad1": 1 }
     },
     "crond": {
-      "root": "crates/daemons/crond",
-      "entrypoint": "Dockerfile",
+      "root": ".",
+      "entrypoint": "Dockerfile.crond",
       "instances": { "iad1": 1 }
     }
   },
