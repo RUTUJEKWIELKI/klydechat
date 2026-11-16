@@ -104,7 +104,16 @@ async fn main() -> Result<(), std::io::Error> {
         .layer(from_fn(klyde_otel::middleware::axum::wide_events))
         .with_state(state);
 
-    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14704));
+    let app = match std::env::var("SERVICE_PATH_PREFIX") {
+        Ok(prefix) if !prefix.is_empty() => Router::new().nest(&prefix, app),
+        _ => app,
+    };
+
+    let port: u16 = std::env::var("PORT")
+        .ok()
+        .and_then(|port| port.parse().ok())
+        .unwrap_or(14704);
+    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, port));
     let listener = TcpListener::bind(&address).await?;
     info!(address = %listener.local_addr()?, "Listening for requests 🍂");
 

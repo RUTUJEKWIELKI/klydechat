@@ -23,10 +23,14 @@ mod mfa;
 
 pub fn mount(config: Settings, mut rocket: Rocket<Build>) -> Rocket<Build> {
     let settings = OpenApiSettings::default();
+    let base = match std::env::var("SERVICE_PATH_PREFIX") {
+        Ok(prefix) if !prefix.is_empty() => prefix,
+        _ => "/".to_owned(),
+    };
 
     if config.features.webhooks_enabled {
         mount_endpoints_and_merged_docs! {
-            rocket, "/".to_owned(), settings,
+            rocket, base.clone(), settings,
             "/" => (vec![], custom_openapi_spec()),
             "" => openapi_get_routes_spec![root::root],
             "/users" => users::routes(),
@@ -47,7 +51,7 @@ pub fn mount(config: Settings, mut rocket: Rocket<Build>) -> Rocket<Build> {
         };
     } else {
         mount_endpoints_and_merged_docs! {
-            rocket, "/".to_owned(), settings,
+            rocket, base, settings,
             "/" => (vec![], custom_openapi_spec()),
             "" => openapi_get_routes_spec![root::root],
             "/users" => users::routes(),
