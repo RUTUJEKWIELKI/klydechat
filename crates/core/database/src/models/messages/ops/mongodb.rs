@@ -424,14 +424,6 @@ impl AbstractMessages for MongoDb {
     }
 }
 
-impl IntoDocumentPath for FieldsMessage {
-    fn as_path(&self) -> Option<&'static str> {
-        Some(match self {
-            FieldsMessage::Pinned => "pinned",
-        })
-    }
-}
-
 impl MongoDb {
     pub async fn delete_bulk_messages(&self, projection: Document) -> Result<()> {
         let mut for_attachments = projection.clone();

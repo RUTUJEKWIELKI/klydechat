@@ -65,10 +65,4 @@ impl AbstractWebhooks for MongoDb {
     }
 }
 
-impl IntoDocumentPath for FieldsWebhook {
-    fn as_path(&self) -> Option<&'static str> {
-        Some(match self {
-            FieldsWebhook::Avatar => "avatar",
-        })
-    }
-}
+

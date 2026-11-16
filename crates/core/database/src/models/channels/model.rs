@@ -13,7 +13,6 @@ use crate::{
     events::client::EventV1, Database, File, PartialServer, Server, SystemMessage, User, AMQP,
 };
 
-#[cfg(feature = "mongodb")]
 use crate::IntoDocumentPath;
 
 auto_derived!(
@@ -887,7 +886,6 @@ impl Channel {
     }
 }
 
-#[cfg(feature = "mongodb")]
 impl IntoDocumentPath for FieldsChannel {
     fn as_path(&self) -> Option<&'static str> {
         Some(match self {

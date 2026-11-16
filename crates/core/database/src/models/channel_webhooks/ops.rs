@@ -4,6 +4,9 @@ use crate::{FieldsWebhook, PartialWebhook, Webhook};
 
 #[cfg(feature = "mongodb")]
 mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[async_trait]
@@ -27,4 +30,13 @@ pub trait AbstractWebhooks: Sync + Send {
 
     /// Delete webhook by id
     async fn delete_webhook(&self, webhook_id: &str) -> Result<()>;
+}
+use crate::IntoDocumentPath;
+
+impl IntoDocumentPath for FieldsWebhook {
+    fn as_path(&self) -> Option<&'static str> {
+        Some(match self {
+            FieldsWebhook::Avatar => "avatar",
+        })
+    }
 }

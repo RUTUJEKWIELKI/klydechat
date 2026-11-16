@@ -82,11 +82,4 @@ impl AbstractBots for MongoDb {
     }
 }
 
-impl IntoDocumentPath for FieldsBot {
-    fn as_path(&self) -> Option<&'static str> {
-        match self {
-            FieldsBot::InteractionsURL => Some("interactions_url"),
-            FieldsBot::Token => None,
-        }
-    }
-}
+

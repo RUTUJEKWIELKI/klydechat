@@ -339,18 +339,4 @@ impl AbstractServerMembers for MongoDb {
     }
 }
 
-impl IntoDocumentPath for FieldsMember {
-    fn as_path(&self) -> Option<&'static str> {
-        match self {
-            FieldsMember::JoinedAt => Some("joined_at"),
-            FieldsMember::Avatar => Some("avatar"),
-            FieldsMember::Nickname => Some("nickname"),
-            FieldsMember::Pronouns => Some("pronouns"),
-            FieldsMember::Roles => Some("roles"),
-            FieldsMember::Timeout => Some("timeout"),
-            FieldsMember::CanPublish => Some("can_publish"),
-            FieldsMember::CanReceive => Some("can_receive"),
-            FieldsMember::VoiceChannel => None,
-        }
-    }
-}
+

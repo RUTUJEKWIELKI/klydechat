@@ -327,18 +327,4 @@ impl AbstractUsers for MongoDb {
     }
 }
 
-impl IntoDocumentPath for FieldsUser {
-    fn as_path(&self) -> Option<&'static str> {
-        Some(match self {
-            FieldsUser::Avatar => "avatar",
-            FieldsUser::ProfileBackground => "profile.background",
-            FieldsUser::ProfileContent => "profile.content",
-            FieldsUser::StatusPresence => "status.presence",
-            FieldsUser::StatusText => "status.text",
-            FieldsUser::DisplayName => "display_name",
-            FieldsUser::Pronouns => "pronouns",
-            FieldsUser::Suspension => "suspended_until",
-            FieldsUser::None => "none",
-        })
-    }
-}
+

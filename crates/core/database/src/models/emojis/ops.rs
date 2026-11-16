@@ -4,6 +4,9 @@ use crate::{query, Emoji, PartialEmoji};
 
 #[cfg(feature = "mongodb")]
 mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[async_trait]

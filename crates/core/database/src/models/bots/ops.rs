@@ -4,6 +4,9 @@ use crate::{Bot, FieldsBot, PartialBot};
 
 #[cfg(feature = "mongodb")]
 mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[async_trait]
@@ -33,4 +36,14 @@ pub trait AbstractBots: Sync + Send {
 
     /// Delete a bot from the database
     async fn delete_bot(&self, id: &str) -> Result<()>;
+}
+use crate::IntoDocumentPath;
+
+impl IntoDocumentPath for FieldsBot {
+    fn as_path(&self) -> Option<&'static str> {
+        match self {
+            FieldsBot::InteractionsURL => Some("interactions_url"),
+            FieldsBot::Token => None,
+        }
+    }
 }

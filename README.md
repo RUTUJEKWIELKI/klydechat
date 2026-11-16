@@ -54,7 +54,7 @@ As a heads-up, the development environment uses the following ports:
 
 | Service                   |      Port      |
 | ------------------------- | :------------: |
-| MongoDB                   |     27017      |
+| PostgreSQL                |      5432      |
 | Redis                     |      6379      |
 | MinIO                     |     14009      |
 | Maildev                   | 14025<br>14080 |
@@ -131,7 +131,7 @@ If you'd like to change anything, create a `Revolt.overrides.toml` file and spec
 > #     Revolt.overrides.toml
 > # and Revolt.test-overrides.toml
 > [database]
-> mongodb = "mongodb://127.0.0.1:14017/?directConnection=true"
+> postgresql = "postgres://postgres:postgres@127.0.0.1:15432/revolt"
 > redis = "redis://127.0.0.1:14079/"
 >
 > [rabbit]

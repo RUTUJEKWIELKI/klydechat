@@ -7,27 +7,24 @@ services:
     ports:
       - "6379:6379"
 
-  # MongoDB
+  # PostgreSQL
   database:
-    image: mirror.gcr.io/mongo
-    command: mongod --replSet rs0
+    image: mirror.gcr.io/postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: revolt
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - ./.data/db:/data/db
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - ./.data/pg:/var/lib/postgresql/data
     healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]}) }" | mongosh --port 27017 --quiet
+      test: ["CMD-SHELL", "pg_isready -U postgres -d revolt"]
       interval: 5s
       timeout: 30s
       start_period: 0s
       start_interval: 1s
       retries: 30
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
 
   # Silo: The artist formerly known as MinIO: S3-compatible storage server
   minio:
@@ -100,5 +97,5 @@ services:
   # Waits for dependencies, used by `mise docker:start`
   wait:
     image: dokku/wait
-    command: -c rabbit:5672,database:27017,redis:6379
+    command: -c rabbit:5672,database:5432,redis:6379
     profiles: [tools]

@@ -9,6 +9,8 @@ use mongodb::results::{DeleteResult, InsertOneResult, UpdateResult};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use crate::IntoDocumentPath;
+
 database_derived!(
     /// MongoDB implementation
     #[derive(Debug)]
@@ -229,18 +231,6 @@ impl MongoDb {
         )
         .await
     }
-}
-
-/// Just a string ID struct
-#[derive(Deserialize)]
-pub struct DocumentId {
-    #[serde(rename = "_id")]
-    pub id: String,
-}
-
-pub trait IntoDocumentPath: Send + Sync {
-    /// Create JSON key path
-    fn as_path(&self) -> Option<&'static str>;
 }
 
 /// Prefix keys on an arbitrary object

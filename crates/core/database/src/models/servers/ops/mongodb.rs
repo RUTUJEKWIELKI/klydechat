@@ -167,27 +167,6 @@ impl AbstractServers for MongoDb {
     }
 }
 
-impl IntoDocumentPath for FieldsServer {
-    fn as_path(&self) -> Option<&'static str> {
-        Some(match self {
-            FieldsServer::Banner => "banner",
-            FieldsServer::Categories => "categories",
-            FieldsServer::Description => "description",
-            FieldsServer::Icon => "icon",
-            FieldsServer::SystemMessages => "system_messages",
-        })
-    }
-}
-
-impl IntoDocumentPath for FieldsRole {
-    fn as_path(&self) -> Option<&'static str> {
-        Some(match self {
-            FieldsRole::Colour => "colour",
-            FieldsRole::Icon => "icon",
-        })
-    }
-}
-
 impl MongoDb {
     pub async fn delete_associated_server_objects(&self, server_id: &str) -> Result<()> {
         // Find all channels

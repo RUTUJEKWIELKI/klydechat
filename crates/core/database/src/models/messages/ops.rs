@@ -6,6 +6,9 @@ use crate::{AppendMessage, FieldsMessage, Message, MessageQuery, PartialMessage}
 
 #[cfg(feature = "mongodb")]
 mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[async_trait]
@@ -52,4 +55,13 @@ pub trait AbstractMessages: Sync + Send {
     ) -> Result<HashMap<String, Vec<String>>>;
 
     async fn delete_messages_by_user(&self, user_id: &str) -> Result<()>;
+}
+use crate::IntoDocumentPath;
+
+impl IntoDocumentPath for FieldsMessage {
+    fn as_path(&self) -> Option<&'static str> {
+        Some(match self {
+            FieldsMessage::Pinned => "pinned",
+        })
+    }
 }
