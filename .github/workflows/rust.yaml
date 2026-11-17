@@ -51,10 +51,10 @@ jobs:
         run: |
           mise test
 
-      - name: MongoDB Test
+      - name: PostgreSQL Test
         env:
-          TEST_DB: MONGODB
-          MONGODB: mongodb://localhost
+          TEST_DB: POSTGRES
+          KLYDE_DATABASE__POSTGRESQL: postgres://postgres:postgres@localhost:5432/revolt
         continue-on-error: ${{ github.ref_name == 'main' }}
         run: |
           mise test

@@ -30,10 +30,10 @@ compile_error!("tokio-runtime feature must be enabled.");
 macro_rules! query_span {
     ( $type: ident, $collection: expr ) => {
         ::tracing::info_span!(
-            "mongodb",
+            "postgresql",
             otel.name = format!("{} {}", stringify!($type), $collection),
             otel.kind = "client",
-            db.system = "mongodb",
+            db.system = "postgresql",
             db.collection.name = $collection,
             db.operation.name = stringify!($type),
         )
