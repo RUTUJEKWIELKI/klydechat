@@ -3,8 +3,6 @@ use crate::{
 };
 use revolt_permissions::OverrideField;
 
-#[cfg(feature = "mongodb")]
-mod mongodb;
 
 #[cfg(feature = "postgres")]
 mod postgres;

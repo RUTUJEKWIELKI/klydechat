@@ -1,5 +1,3 @@
-#[cfg(feature = "mongodb")]
-mod mongodb;
 #[cfg(feature = "postgres")]
 mod postgres;
 mod reference;
@@ -8,8 +6,6 @@ mod reference;
 use rand::Rng;
 use revolt_config::config;
 
-#[cfg(feature = "mongodb")]
-pub use self::mongodb::*;
 #[cfg(feature = "postgres")]
 pub use self::postgres::*;
 pub use self::reference::*;
@@ -37,12 +33,6 @@ pub enum DatabaseInfo {
     /// Connect to PostgreSQL
     #[cfg(feature = "postgres")]
     Postgres { uri: String },
-    /// Connect to MongoDB
-    #[cfg(feature = "mongodb")]
-    MongoDb { uri: String, database_name: String },
-    /// Use existing MongoDB connection
-    #[cfg(feature = "mongodb")]
-    MongoDbFromClient(::mongodb::Client, String),
 }
 
 /// Database
@@ -53,9 +43,6 @@ pub enum Database {
     /// PostgreSQL database
     #[cfg(feature = "postgres")]
     Postgres(PostgresDb),
-    /// MongoDB database
-    #[cfg(feature = "mongodb")]
-    MongoDb(MongoDb),
 }
 
 impl DatabaseInfo {
@@ -83,26 +70,13 @@ impl DatabaseInfo {
 
                     #[cfg(not(feature = "postgres"))]
                     return Err("PostgreSQL not enabled.".to_string());
-                } else if !config.database.mongodb.is_empty() {
-                    #[cfg(feature = "mongodb")]
-                    return DatabaseInfo::MongoDb {
-                        uri: config.database.mongodb,
-                        database_name: "revolt".to_string(),
-                    }
-                    .connect()
-                    .await;
-
-                    #[cfg(not(feature = "mongodb"))]
-                    return Err("MongoDB not enabled.".to_string());
                 } else {
                     DatabaseInfo::Reference.connect().await
                 }
             }
-            DatabaseInfo::Test(database_name) => {
+            DatabaseInfo::Test(_database_name) => {
                 match std::env::var("TEST_DB")
-                    .expect(
-                        "`TEST_DB` environment variable should be set to REFERENCE, POSTGRES or MONGODB",
-                    )
+                    .expect("`TEST_DB` environment variable should be set to REFERENCE or POSTGRES")
                     .as_str()
                 {
                     "REFERENCE" => DatabaseInfo::Reference.connect().await,
@@ -117,19 +91,7 @@ impl DatabaseInfo {
                         #[cfg(not(feature = "postgres"))]
                         return Err("PostgreSQL not enabled.".to_string());
                     }
-                    "MONGODB" => {
-                        #[cfg(feature = "mongodb")]
-                        return DatabaseInfo::MongoDb {
-                            uri: config.database.mongodb,
-                            database_name,
-                        }
-                        .connect()
-                        .await;
-
-                        #[cfg(not(feature = "mongodb"))]
-                        return Err("MongoDB not enabled.".to_string());
-                    }
-                    _ => unreachable!("must specify REFERENCE, POSTGRES or MONGODB"),
+                    _ => unreachable!("must specify REFERENCE or POSTGRES"),
                 }
             }
             DatabaseInfo::Reference => Ok(Database::Reference(Default::default())),
@@ -142,18 +104,6 @@ impl DatabaseInfo {
                     .map_err(|_| "Failed to init db connection.".to_string())?;
 
                 Ok(Database::Postgres(PostgresDb(pool)))
-            }
-            #[cfg(feature = "mongodb")]
-            DatabaseInfo::MongoDb { uri, database_name } => {
-                let client = ::mongodb::Client::with_uri_str(uri)
-                    .await
-                    .map_err(|_| "Failed to init db connection.".to_string())?;
-
-                Ok(Database::MongoDb(MongoDb(client, database_name)))
-            }
-            #[cfg(feature = "mongodb")]
-            DatabaseInfo::MongoDbFromClient(client, database_name) => {
-                Ok(Database::MongoDb(MongoDb(client, database_name)))
             }
         }
     }

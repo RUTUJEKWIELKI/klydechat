@@ -2,8 +2,6 @@ use revolt_result::Result;
 
 use crate::Invite;
 
-#[cfg(feature = "mongodb")]
-mod mongodb;
 
 #[cfg(feature = "postgres")]
 mod postgres;

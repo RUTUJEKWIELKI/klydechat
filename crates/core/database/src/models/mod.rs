@@ -52,9 +52,6 @@ pub use users::*;
 
 use crate::{Database, ReferenceDb};
 
-#[cfg(feature = "mongodb")]
-use crate::MongoDb;
-
 #[cfg(feature = "postgres")]
 use crate::PostgresDb;
 
@@ -91,9 +88,6 @@ pub trait AbstractDatabase:
 
 impl AbstractDatabase for ReferenceDb {}
 
-#[cfg(feature = "mongodb")]
-impl AbstractDatabase for MongoDb {}
-
 #[cfg(feature = "postgres")]
 impl AbstractDatabase for PostgresDb {}
 
@@ -105,8 +99,6 @@ impl std::ops::Deref for Database {
             Database::Reference(dummy) => dummy,
             #[cfg(feature = "postgres")]
             Database::Postgres(postgres) => postgres,
-            #[cfg(feature = "mongodb")]
-            Database::MongoDb(mongo) => mongo,
         }
     }
 }

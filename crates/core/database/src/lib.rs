@@ -18,10 +18,7 @@ extern crate revolt_result;
 
 pub use iso8601_timestamp;
 
-#[cfg(feature = "mongodb")]
-pub use mongodb;
-
-#[cfg(any(feature = "mongodb", feature = "postgres"))]
+#[cfg(feature = "postgres")]
 #[macro_use]
 extern crate bson;
 

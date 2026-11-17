@@ -227,7 +227,7 @@ Now run tests for whichever database:
 
 ```sh
 TEST_DB=REFERENCE cargo nextest run
-TEST_DB=MONGODB cargo nextest run
+TEST_DB=POSTGRES cargo nextest run
 ```
 
 ## License

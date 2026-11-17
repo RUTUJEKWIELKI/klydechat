@@ -3,11 +3,7 @@
 
 [database]
 # PostgreSQL connection URL
-# Takes priority over MongoDB when set
 postgresql = "postgres://postgres:postgres@127.0.0.1:5432/revolt"
-# MongoDB connection URL
-# Defaults to the container name specified in self-hosted
-mongodb = "mongodb://127.0.0.1:27017"
 # Redis connection URL
 # Defaults to the container name specified in self-hosted
 redis = "redis://127.0.0.1:6379/"

@@ -2,8 +2,6 @@ use revolt_result::Result;
 
 use crate::PolicyChange;
 
-#[cfg(feature = "mongodb")]
-mod mongodb;
 
 #[cfg(feature = "postgres")]
 mod postgres;

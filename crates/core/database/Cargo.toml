@@ -11,7 +11,6 @@ repository = "https://github.com/klydechat/klydechat"
 
 [features]
 # Databases
-mongodb = ["dep:mongodb", "bson"]
 postgres = ["dep:sqlx", "bson"]
 
 # ... Other
@@ -68,7 +67,6 @@ redis-kiss = { workspace = true, default-features = false, features = [
 
 # Database
 bson = { workspace = true, optional = true }
-mongodb = { workspace = true, optional = true }
 sqlx = { workspace = true, optional = true }
 
 # Database Migration

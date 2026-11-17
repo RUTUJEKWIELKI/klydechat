@@ -4,11 +4,7 @@ environment = "dev"
 
 [database]
 # PostgreSQL connection URL
-# Takes priority over MongoDB when set
 postgresql = "postgres://postgres:postgres@postgres/revolt"
-# MongoDB connection URL
-# Defaults to the container name specified in self-hosted
-mongodb = "mongodb://database"
 # Redis connection URL
 # Defaults to the container name specified in self-hosted
 redis = "redis://redis/"
