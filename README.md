@@ -35,7 +35,7 @@ The services and libraries that power the Klyde service.<br/>
 
 ## Minimum Supported Rust Version
 
-Rust 1.86.0 or higher.
+Rust 1.92.0 or higher.
 
 ## Development Guide
 
@@ -112,7 +112,7 @@ If you'd like to change anything, create a `Revolt.overrides.toml` file and spec
 >
 >   database:
 >     ports: !override
->       - "14017:27017"
+>       - "14017:5432"
 >
 >   rabbit:
 >     ports: !override
@@ -131,7 +131,7 @@ If you'd like to change anything, create a `Revolt.overrides.toml` file and spec
 > #     Revolt.overrides.toml
 > # and Revolt.test-overrides.toml
 > [database]
-> postgresql = "postgres://postgres:postgres@127.0.0.1:15432/revolt"
+> postgresql = "postgres://postgres:postgres@127.0.0.1:14017/revolt"
 > redis = "redis://127.0.0.1:14079/"
 >
 > [rabbit]
@@ -176,6 +176,10 @@ This list is non-exhaustive right now.
 
 | Variable                              | Default                 | Purpose                                                               |
 | ------------------------------------- | ----------------------- | --------------------------------------------------------------------- |
+| `KLYDE_DATABASE__POSTGRESQL`          |                         | PostgreSQL connection URL, overrides `Revolt.toml`                    |
+| `KLYDE_DATABASE__REDIS`               |                         | Redis connection URL, overrides `Revolt.toml`                         |
+| `KLYDE_RABBIT__HOST` / `KLYDE_RABBIT__PORT` |                   | RabbitMQ connection, overrides `Revolt.toml`                          |
+| `SERVICE_PATH_PREFIX`                 |                         | Base path prefix for API routes, e.g. `/api` on Vercel                |
 | `RUST_LOG`                            | `info`                  | Log filter, e.g. `info,revolt_autumn=debug`                           |
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    |                         | OTLP/HTTP endpoint for logs                                           |
 | `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  |                         | OTLP/HTTP endpoint for traces                                         |
