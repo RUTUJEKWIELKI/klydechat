@@ -1,7 +1,7 @@
 environment = "test"
 
 [database]
-postgresql = "postgres://localhost"
+postgresql = "postgres://postgres:postgres@localhost/revolt"
 redis = "redis://localhost/"
 
 [rabbit]

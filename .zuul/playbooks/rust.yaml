@@ -43,7 +43,7 @@
         chdir: "{{ zuul.project.src_dir }}"
         stdin: |
           [database]
-          mongodb = "mongodb://{{ docker_ip }}:27017/?directConnection=true"
+          postgresql = "postgres://postgres:postgres@{{ docker_ip }}:5432/revolt"
           redis = "redis://{{ docker_ip }}:6379/"
 
           [rabbit]
@@ -77,13 +77,12 @@
       environment:
         TEST_DB: REFERENCE
 
-    - name: Test against MongoDB
+    - name: Test against PostgreSQL
       command: mise run test
       args:
         chdir: "{{ zuul.project.src_dir }}"
       environment:
-        TEST_DB: MONGODB
-        MONGODB: "mongodb://{{ docker_ip }}:27017/?directConnection=true"
+        TEST_DB: POSTGRES
 
     - name: Show cache statistics
       command: sccache --show-stats
