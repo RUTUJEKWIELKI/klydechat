@@ -1,14 +1,14 @@
 use std::time::{Duration, SystemTime};
 
 use super::AbstractRatelimitEvents;
-use crate::{MongoDb, RatelimitEvent, RatelimitEventType};
+use crate::{PostgresDb, RatelimitEvent, RatelimitEventType};
 use revolt_result::Result;
 use ulid::Ulid;
 
 static COL: &str = "ratelimit_events";
 
 #[async_trait]
-impl AbstractRatelimitEvents for MongoDb {
+impl AbstractRatelimitEvents for PostgresDb {
     /// Insert a new ratelimit event
     async fn insert_ratelimit_event(&self, event: &RatelimitEvent) -> Result<()> {
         query!(self, insert_one, COL, &event).map(|_| ())
@@ -22,16 +22,18 @@ impl AbstractRatelimitEvents for MongoDb {
         period: Duration,
         count: usize,
     ) -> Result<bool> {
-        self.col::<RatelimitEvent>(COL)
-            .count_documents(doc! {
+        query!(
+            self,
+            count_documents,
+            COL,
+            doc! {
                 "_id": {
                     "$gte": Ulid::from_datetime(SystemTime::now() - period).to_string()
                 },
                 "target_id": target_id,
                 "event_type": event_type.to_string()
-            })
-            .await
-            .map(|c| c as usize >= count)
-            .map_err(|_| create_database_error!("count_documents", COL))
+            }
+        )
+        .map(|c| c as usize >= count)
     }
 }

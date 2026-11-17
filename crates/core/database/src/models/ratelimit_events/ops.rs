@@ -2,8 +2,9 @@ use std::time::Duration;
 
 use crate::{revolt_result::Result, RatelimitEvent, RatelimitEventType};
 
-#[cfg(feature = "mongodb")]
-mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[async_trait]

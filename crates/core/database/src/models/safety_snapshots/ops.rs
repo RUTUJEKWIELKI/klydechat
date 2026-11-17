@@ -2,8 +2,9 @@ use revolt_result::Result;
 
 use crate::Snapshot;
 
-#[cfg(feature = "mongodb")]
-mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[async_trait]

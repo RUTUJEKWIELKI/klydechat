@@ -1265,7 +1265,7 @@ impl crate::User {
         }
     }
 
-    pub fn as_author_for_system(&self) -> MessageAuthor {
+    pub fn as_author_for_system(&self) -> MessageAuthor<'_> {
         MessageAuthor::System {
             username: &self.username,
             avatar: self.avatar.as_ref().map(|file| file.id.as_ref()),

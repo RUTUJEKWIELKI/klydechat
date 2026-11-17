@@ -1,14 +1,14 @@
 use revolt_result::Result;
 
 use crate::{Bot, FieldsBot, PartialBot};
-use crate::{IntoDocumentPath, MongoDb};
+use crate::{IntoDocumentPath, PostgresDb};
 
 use super::AbstractBots;
 
 static COL: &str = "bots";
 
 #[async_trait]
-impl AbstractBots for MongoDb {
+impl AbstractBots for PostgresDb {
     /// Insert new bot into the database
     async fn insert_bot(&self, bot: &Bot) -> Result<()> {
         query!(self, insert_one, COL, &bot).map(|_| ())
@@ -79,14 +79,5 @@ impl AbstractBots for MongoDb {
     /// Delete a bot from the database
     async fn delete_bot(&self, id: &str) -> Result<()> {
         query!(self, delete_one_by_id, COL, id).map(|_| ())
-    }
-}
-
-impl IntoDocumentPath for FieldsBot {
-    fn as_path(&self) -> Option<&'static str> {
-        match self {
-            FieldsBot::InteractionsURL => Some("interactions_url"),
-            FieldsBot::Token => None,
-        }
     }
 }

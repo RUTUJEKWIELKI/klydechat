@@ -2,9 +2,8 @@
 # If you'd like to override anything, create a Revolt.overrides.toml
 
 [database]
-# MongoDB connection URL
-# Defaults to the container name specified in self-hosted
-mongodb = "mongodb://127.0.0.1:27017"
+# PostgreSQL connection URL
+postgresql = "postgres://postgres:postgres@127.0.0.1:5432/revolt"
 # Redis connection URL
 # Defaults to the container name specified in self-hosted
 redis = "redis://127.0.0.1:6379/"

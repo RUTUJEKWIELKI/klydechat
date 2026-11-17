@@ -1,15 +1,14 @@
-use futures::StreamExt;
 use revolt_result::Result;
 
 use crate::{FieldsWebhook, PartialWebhook, Webhook};
-use crate::{IntoDocumentPath, MongoDb};
+use crate::{IntoDocumentPath, PostgresDb};
 
 use super::AbstractWebhooks;
 
 static COL: &str = "channel_webhooks";
 
 #[async_trait]
-impl AbstractWebhooks for MongoDb {
+impl AbstractWebhooks for PostgresDb {
     /// Insert new webhook into the database
     async fn insert_webhook(&self, webhook: &Webhook) -> Result<()> {
         query!(self, insert_one, COL, &webhook).map(|_| ())
@@ -22,22 +21,14 @@ impl AbstractWebhooks for MongoDb {
 
     /// Fetch webhooks for channel
     async fn fetch_webhooks_for_channel(&self, channel_id: &str) -> Result<Vec<Webhook>> {
-        Ok(self
-            .col::<Webhook>(COL)
-            .find(doc! {
+        query!(
+            self,
+            find,
+            COL,
+            doc! {
                 "channel_id": channel_id,
-            })
-            .await
-            .map_err(|_| create_database_error!("find", COL))?
-            .filter_map(|s| async {
-                if cfg!(debug_assertions) {
-                    Some(s.unwrap())
-                } else {
-                    s.ok()
-                }
-            })
-            .collect()
-            .await)
+            }
+        )
     }
 
     /// Update webhook with new information
@@ -62,13 +53,5 @@ impl AbstractWebhooks for MongoDb {
     /// Delete webhook by id
     async fn delete_webhook(&self, webhook_id: &str) -> Result<()> {
         query!(self, delete_one_by_id, COL, webhook_id).map(|_| ())
-    }
-}
-
-impl IntoDocumentPath for FieldsWebhook {
-    fn as_path(&self) -> Option<&'static str> {
-        Some(match self {
-            FieldsWebhook::Avatar => "avatar",
-        })
     }
 }

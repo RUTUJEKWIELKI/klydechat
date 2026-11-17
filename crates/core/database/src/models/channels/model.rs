@@ -1,7 +1,6 @@
 #![allow(deprecated)]
 use std::{borrow::Cow, collections::HashMap};
 
-use redis_kiss::get_connection;
 use revolt_config::config;
 use revolt_models::v0::{self, MessageAuthor};
 use revolt_permissions::OverrideField;
@@ -13,7 +12,6 @@ use crate::{
     events::client::EventV1, Database, File, PartialServer, Server, SystemMessage, User, AMQP,
 };
 
-#[cfg(feature = "mongodb")]
 use crate::IntoDocumentPath;
 
 auto_derived!(
@@ -445,7 +443,7 @@ impl Channel {
     }
 
     /// Gets this channel's voice information
-    pub fn voice(&self) -> Option<Cow<VoiceInformation>> {
+    pub fn voice(&self) -> Option<Cow<'_, VoiceInformation>> {
         match self {
             Self::DirectMessage { .. } | Self::Group { .. } => {
                 Some(Cow::Owned(VoiceInformation::default()))
@@ -887,7 +885,6 @@ impl Channel {
     }
 }
 
-#[cfg(feature = "mongodb")]
 impl IntoDocumentPath for FieldsChannel {
     fn as_path(&self) -> Option<&'static str> {
         Some(match self {

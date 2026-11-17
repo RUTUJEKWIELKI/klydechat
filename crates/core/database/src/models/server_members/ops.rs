@@ -1,23 +1,15 @@
-#[cfg(feature = "mongodb")]
-use ::mongodb::{ClientSession, SessionCursor};
-
 use revolt_result::Result;
 
 use crate::{FieldsMember, Member, MemberCompositeKey, PartialMember};
 
-#[cfg(feature = "mongodb")]
-mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[derive(Debug)]
 #[allow(clippy::large_enum_variant)]
 pub enum ChunkedServerMembersGenerator {
-    #[cfg(feature = "mongodb")]
-    MongoDb {
-        session: ClientSession,
-        cursor: Option<SessionCursor<Member>>,
-    },
-
     Reference {
         offset: i32,
         data: Option<Vec<Member>>,
@@ -25,14 +17,6 @@ pub enum ChunkedServerMembersGenerator {
 }
 
 impl ChunkedServerMembersGenerator {
-    #[cfg(feature = "mongodb")]
-    pub fn new_mongo(session: ClientSession, cursor: SessionCursor<Member>) -> Self {
-        ChunkedServerMembersGenerator::MongoDb {
-            session,
-            cursor: Some(cursor),
-        }
-    }
-
     pub fn new_reference(data: Vec<Member>) -> Self {
         ChunkedServerMembersGenerator::Reference {
             offset: 0,
@@ -42,19 +26,9 @@ impl ChunkedServerMembersGenerator {
 
     pub async fn next(&mut self) -> Option<Member> {
         match self {
-            #[cfg(feature = "mongodb")]
-            ChunkedServerMembersGenerator::MongoDb { session, cursor } => {
-                if let Some(cursor) = cursor {
-                    let value = cursor.next(session).await;
-                    value.map(|val| val.expect("Failed to fetch the next member"))
-                } else {
-                    warn!("Attempted to access a (MongoDb) server member generator without first setting a cursor");
-                    None
-                }
-            }
             ChunkedServerMembersGenerator::Reference { offset, data } => {
                 if let Some(data) = data {
-                    if data.len() as i32 >= *offset {
+                    if *offset >= data.len() as i32 {
                         None
                     } else {
                         let resp = &data[*offset as usize];
@@ -132,4 +106,21 @@ pub trait AbstractServerMembers: Sync + Send {
 
     /// Removes a user from every server they are in
     async fn clear_memberships(&self, user_id: &str) -> Result<()>;
+}
+use crate::IntoDocumentPath;
+
+impl IntoDocumentPath for FieldsMember {
+    fn as_path(&self) -> Option<&'static str> {
+        match self {
+            FieldsMember::JoinedAt => Some("joined_at"),
+            FieldsMember::Avatar => Some("avatar"),
+            FieldsMember::Nickname => Some("nickname"),
+            FieldsMember::Pronouns => Some("pronouns"),
+            FieldsMember::Roles => Some("roles"),
+            FieldsMember::Timeout => Some("timeout"),
+            FieldsMember::CanPublish => Some("can_publish"),
+            FieldsMember::CanReceive => Some("can_receive"),
+            FieldsMember::VoiceChannel => None,
+        }
+    }
 }

@@ -1,7 +1,6 @@
+use ::sqlx::Row;
 use bson::{to_bson, Document};
 use futures::try_join;
-use futures::StreamExt;
-use mongodb::options::FindOptions;
 use revolt_models::v0::MessageSort;
 use revolt_result::Result;
 use std::collections::{HashMap, HashSet};
@@ -10,7 +9,7 @@ use ulid::Ulid;
 
 use crate::{
     AppendMessage, DocumentId, FieldsMessage, IntoDocumentPath, Message, MessageQuery,
-    MessageTimePeriod, MongoDb, PartialMessage,
+    MessageTimePeriod, PartialMessage, PostgresDb, PostgresFindOptions,
 };
 
 use super::AbstractMessages;
@@ -18,7 +17,7 @@ use super::AbstractMessages;
 static COL: &str = "messages";
 
 #[async_trait]
-impl AbstractMessages for MongoDb {
+impl AbstractMessages for PostgresDb {
     /// Insert a new message into the database
     async fn insert_message(&self, message: &Message) -> Result<()> {
         query!(self, insert_one, COL, &message).map(|_| ())
@@ -88,25 +87,23 @@ impl AbstractMessages for MongoDb {
                     self.find_with_options::<_, Message>(
                         COL,
                         newer_message_filter,
-                        FindOptions::builder()
+                        PostgresFindOptions::new()
                             .limit(limit / 2 + 1)
                             .sort(doc! {
                                 "_id": 1_i32
-                            })
-                            .build(),
+                            }),
                     ),
                     self.find_with_options::<_, Message>(
                         COL,
                         older_message_filter,
-                        FindOptions::builder()
+                        PostgresFindOptions::new()
                             .limit(limit / 2 + 1)
                             .sort(doc! {
                                 "_id": -1_i32
-                            })
-                            .build(),
+                            }),
                     )
                 )
-                .map_err(|_| create_database_error!("find", COL))?;
+                .map_err(|_: ::sqlx::Error| create_database_error!("find", COL))?;
 
                 Ok([a, b].concat())
             }
@@ -136,16 +133,14 @@ impl AbstractMessages for MongoDb {
                 self.find_with_options(
                     COL,
                     filter,
-                    FindOptions::builder()
+                    PostgresFindOptions::new()
                         .limit(limit)
                         .sort(match sort.unwrap_or(MessageSort::Latest) {
                             // Sort by relevance, fallback to latest
                             MessageSort::Relevance => {
                                 if is_search_query {
                                     doc! {
-                                        "score": {
-                                            "$meta": "textScore"
-                                        }
+                                        "_id": -1_i32
                                     }
                                 } else {
                                     doc! {
@@ -161,11 +156,10 @@ impl AbstractMessages for MongoDb {
                             MessageSort::Oldest => doc! {
                                 "_id": 1_i32
                             },
-                        })
-                        .build(),
+                        }),
                 )
                 .await
-                .map_err(|_| create_database_error!("find", COL))
+                .map_err(|_: ::sqlx::Error| create_database_error!("find", COL))
             }
         }
     }
@@ -182,7 +176,7 @@ impl AbstractMessages for MongoDb {
             None,
         )
         .await
-        .map_err(|_| create_database_error!("find", COL))
+        .map_err(|_: ::sqlx::Error| create_database_error!("find", COL))
     }
 
     /// Update a given message with new information
@@ -206,90 +200,90 @@ impl AbstractMessages for MongoDb {
 
     /// Append information to a given message
     async fn append_message(&self, id: &str, append: &AppendMessage) -> Result<()> {
-        let mut query = doc! {};
+        let mut query_doc = Document::new();
 
         if let Some(embeds) = &append.embeds {
             if !embeds.is_empty() {
-                query.insert(
+                query_doc.insert(
                     "$push",
                     doc! {
                         "embeds": {
                             "$each": to_bson(embeds)
-                                .map_err(|_| create_database_error!("to_bson", "embeds"))?
+                                .map_err(|_: bson::ser::Error| create_database_error!("to_bson", "embeds"))?
                         }
                     },
                 );
             }
         }
 
-        if query.is_empty() {
+        if query_doc.is_empty() {
             return Ok(());
         }
 
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                query,
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        self.update_one_raw(
+            COL,
+            doc! {
+                "_id": id
+            },
+            &query_doc,
+        )
+        .await
+        .map(|_| ())
+        .map_err(|_: ::sqlx::Error| create_database_error!("update_one", COL))
     }
 
     /// Add a new reaction to a message
     async fn add_reaction(&self, id: &str, emoji: &str, user: &str) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                doc! {
-                    "$addToSet": {
-                        format!("reactions.{emoji}"): user
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        self.update_one_raw(
+            COL,
+            doc! {
+                "_id": id
+            },
+            &doc! {
+                "$addToSet": {
+                    format!("reactions.{emoji}"): user
+                }
+            },
+        )
+        .await
+        .map(|_| ())
+        .map_err(|_: ::sqlx::Error| create_database_error!("update_one", COL))
     }
 
     /// Remove a reaction from a message
     async fn remove_reaction(&self, id: &str, emoji: &str, user: &str) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                doc! {
-                    "$pull": {
-                        format!("reactions.{emoji}"): user
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        self.update_one_raw(
+            COL,
+            doc! {
+                "_id": id
+            },
+            &doc! {
+                "$pull": {
+                    format!("reactions.{emoji}"): user
+                }
+            },
+        )
+        .await
+        .map(|_| ())
+        .map_err(|_: ::sqlx::Error| create_database_error!("update_one", COL))
     }
 
     /// Remove reaction from a message
     async fn clear_reaction(&self, id: &str, emoji: &str) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                doc! {
-                    "$unset": {
-                        format!("reactions.{emoji}"): 1
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        self.update_one_raw(
+            COL,
+            doc! {
+                "_id": id
+            },
+            &doc! {
+                "$unset": {
+                    format!("reactions.{emoji}"): 1
+                }
+            },
+        )
+        .await
+        .map(|_| ())
+        .map_err(|_: ::sqlx::Error| create_database_error!("update_one", COL))
     }
 
     /// Delete a message from the database by its id
@@ -299,16 +293,19 @@ impl AbstractMessages for MongoDb {
 
     /// Delete messages from a channel by their ids and corresponding channel id
     async fn delete_messages(&self, channel: &str, ids: &[String]) -> Result<()> {
-        self.col::<Document>(COL)
-            .delete_many(doc! {
+        query!(
+            self,
+            delete_many,
+            COL,
+            doc! {
                 "channel": channel,
                 "_id": {
                     "$in": ids
                 }
-            })
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("delete_many", COL))
+            }
+        )
+        .map(|_| ())
+        .map_err(|_: ::sqlx::Error| create_database_error!("delete_many", COL))
     }
 
     /// Delete all messages from a specific author in a server from a certain ULID onwards
@@ -320,99 +317,80 @@ impl AbstractMessages for MongoDb {
     ) -> Result<HashMap<String, Vec<String>>> {
         let threshold_ulid = Ulid::from_datetime(since).to_string();
 
-        let filter = doc! {
-            "author": author,
-            "channel": { "$in": channels },
-            "_id": { "$gte": &threshold_ulid }
-        };
-
-        let pipeline = vec![
-            doc! { "$match": filter.clone() },
-            doc! {
-                "$project": {
-                    "channel": 1_i32,
-                    "message_id": "$_id",
-                    "attachment_ids": {
-                        "$map": {
-                            "input": { "$ifNull": ["$attachments", Vec::<bson::Bson>::new()] },
-                            "as": "a",
-                            "in": "$$a._id"
-                        }
-                    }
-                }
-            },
-            doc! {
-                "$group": {
-                    "_id": "$channel",
-                    "message_ids": { "$push": "$message_id" },
-                    "attachment_ids_nested": { "$push": "$attachment_ids" }
-                }
-            },
-            doc! {
-                "$project": {
-                    "message_ids": 1_i32,
-                    "attachment_ids": {
-                        "$reduce": {
-                            "input": "$attachment_ids_nested",
-                            "initialValue": Vec::<bson::Bson>::new(),
-                            "in": { "$setUnion": ["$$value", "$$this"] }
-                        }
-                    }
-                }
-            },
-        ];
-
-        #[derive(serde::Deserialize)]
-        struct AggregatedChannel {
-            #[serde(rename = "_id")]
-            channel: String,
-            message_ids: Vec<String>,
-            #[serde(default)]
-            attachment_ids: Vec<String>,
-        }
-
-        let mut cursor = self
-            .col::<Document>(COL)
-            .aggregate(pipeline)
-            .await
-            .map_err(|_| create_database_error!("aggregate", COL))?
-            .with_type::<AggregatedChannel>();
+        let rows = ::sqlx::query(
+            "SELECT data->>'channel' AS channel, \
+             jsonb_agg(data->>'_id') AS message_ids, \
+             COALESCE(jsonb_agg(COALESCE((SELECT jsonb_agg(a->>'_id') \
+             FROM jsonb_array_elements(CASE WHEN jsonb_typeof(data->'attachments') = 'array' \
+             THEN data->'attachments' ELSE '[]'::jsonb END) a), '[]'::jsonb)), '[]'::jsonb) AS attachment_ids \
+             FROM messages \
+             WHERE data->>'author' = $1 AND data->>'channel' = ANY($2) AND id >= $3 \
+             GROUP BY data->>'channel'",
+        )
+        .bind(author)
+        .bind(channels.to_vec())
+        .bind(threshold_ulid.clone())
+        .fetch_all(&self.0)
+        .await
+        .map_err(|_: ::sqlx::Error| create_database_error!("aggregate", COL))?;
 
         let mut deleted_messages: HashMap<String, Vec<String>> = HashMap::new();
         let mut attachment_ids: HashSet<String> = HashSet::new();
 
-        while let Some(result) = cursor.next().await {
-            if let Ok(item) = result {
-                for id in item.attachment_ids {
-                    attachment_ids.insert(id);
+        for row in rows {
+            let channel: String = row.try_get("channel").unwrap_or_default();
+            let message_ids: serde_json::Value = row.try_get("message_ids").unwrap_or_default();
+            let attachments: serde_json::Value =
+                row.try_get("attachment_ids").unwrap_or_default();
+
+            deleted_messages.insert(
+                channel,
+                serde_json::from_value(message_ids).unwrap_or_default(),
+            );
+
+            if let serde_json::Value::Array(nested) = attachments {
+                for group in nested {
+                    if let serde_json::Value::Array(ids) = group {
+                        for id in ids {
+                            if let serde_json::Value::String(id) = id {
+                                attachment_ids.insert(id);
+                            }
+                        }
+                    }
                 }
-                deleted_messages.insert(item.channel, item.message_ids);
             }
         }
 
         // Mark attachments as deleted before deleting messages
         if !attachment_ids.is_empty() {
-            self.col::<Document>("attachments")
-                .update_many(
-                    doc! {
-                        "_id": {
-                            "$in": attachment_ids.into_iter().collect::<Vec<String>>()
-                        }
-                    },
-                    doc! {
-                        "$set": {
-                            "deleted": true
-                        }
-                    },
-                )
-                .await
-                .map_err(|_| create_database_error!("update_many", "attachments"))?;
+            self.update_many_raw(
+                "attachments",
+                doc! {
+                    "_id": {
+                        "$in": attachment_ids.into_iter().collect::<Vec<String>>()
+                    }
+                },
+                &doc! {
+                    "$set": {
+                        "deleted": true
+                    }
+                },
+            )
+            .await
+            .map_err(|_: ::sqlx::Error| create_database_error!("update_many", "attachments"))?;
         }
 
-        self.col::<Document>(COL)
-            .delete_many(filter)
-            .await
-            .map_err(|_| create_database_error!("delete_many", COL))?;
+        query!(
+            self,
+            delete_many,
+            COL,
+            doc! {
+                "author": author,
+                "channel": { "$in": channels },
+                "_id": { "$gte": &threshold_ulid }
+            }
+        )
+        .map_err(|_: ::sqlx::Error| create_database_error!("delete_many", COL))?;
 
         Ok(deleted_messages)
     }
@@ -420,19 +398,12 @@ impl AbstractMessages for MongoDb {
     async fn delete_messages_by_user(&self, user_id: &str) -> Result<()> {
         self.delete_bulk_messages(doc! {
             "author": user_id,
-        }).await
-    }
-}
-
-impl IntoDocumentPath for FieldsMessage {
-    fn as_path(&self) -> Option<&'static str> {
-        Some(match self {
-            FieldsMessage::Pinned => "pinned",
         })
+        .await
     }
 }
 
-impl MongoDb {
+impl PostgresDb {
     pub async fn delete_bulk_messages(&self, projection: Document) -> Result<()> {
         let mut for_attachments = projection.clone();
         for_attachments.insert(
@@ -447,40 +418,37 @@ impl MongoDb {
             .find_with_options::<_, DocumentId>(
                 COL,
                 for_attachments,
-                FindOptions::builder()
-                    .projection(doc! { "_id": 1_i32 })
-                    .build(),
+                None,
             )
             .await
-            .map_err(|_| create_database_error!("find_many", "attachments"))?
+            .map_err(|_: ::sqlx::Error| create_database_error!("find_many", "attachments"))?
             .into_iter()
             .map(|x| x.id)
             .collect::<Vec<String>>();
 
         // If we found any, mark them as deleted.
         if !message_ids_with_attachments.is_empty() {
-            self.col::<Document>("attachments")
-                .update_many(
-                    doc! {
-                        "message_id": {
-                            "$in": message_ids_with_attachments
-                        }
-                    },
-                    doc! {
-                        "$set": {
-                            "deleted": true
-                        }
-                    },
-                )
-                .await
-                .map_err(|_| create_database_error!("update_many", "attachments"))?;
+            self.update_many_raw(
+                "attachments",
+                doc! {
+                    "message_id": {
+                        "$in": message_ids_with_attachments
+                    }
+                },
+                &doc! {
+                    "$set": {
+                        "deleted": true
+                    }
+                },
+            )
+            .await
+            .map_err(|_: ::sqlx::Error| create_database_error!("update_many", "attachments"))?;
         }
 
         // And then delete said messages.
-        self.col::<Document>(COL)
-            .delete_many(projection)
+        self.delete_many(COL, projection)
             .await
             .map(|_| ())
-            .map_err(|_| create_database_error!("delete_many", COL))
+            .map_err(|_: ::sqlx::Error| create_database_error!("delete_many", COL))
     }
 }

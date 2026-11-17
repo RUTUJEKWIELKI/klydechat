@@ -1,19 +1,17 @@
-use bson::to_document;
-use bson::Document;
 use revolt_config::report_internal_error;
 use revolt_result::Result;
 
 use crate::File;
 use crate::FileHash;
 use crate::FileUsedFor;
-use crate::MongoDb;
+use crate::PostgresDb;
 
 use super::AbstractAttachments;
 
 static COL: &str = "attachments";
 
 #[async_trait]
-impl AbstractAttachments for MongoDb {
+impl AbstractAttachments for PostgresDb {
     /// Insert attachment into database.
     async fn insert_attachment(&self, attachment: &File) -> Result<()> {
         query!(self, insert_one, COL, &attachment).map(|_| ())
@@ -102,78 +100,79 @@ impl AbstractAttachments for MongoDb {
         )?
         .ok_or_else(|| create_error!(NotFound))?;
 
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                doc! {
-                    "$set": {
-                        "used_for": report_internal_error!(to_document(&used_for))?,
-                        "uploader_id": uploader_id
-                    }
-                },
-            )
-            .await
-            .map_err(|_| create_database_error!("update_one", COL))?;
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": id
+            },
+            &doc! {
+                "$set": {
+                    "used_for": report_internal_error!(bson::to_bson(&used_for))?,
+                    "uploader_id": uploader_id
+                }
+            }
+        )
+        .map(|_| ())?;
 
         Ok(file)
     }
 
     /// Mark an attachment as having been reported.
     async fn mark_attachment_as_reported(&self, id: &str) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                doc! {
-                    "$set": {
-                        "reported": true
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": id
+            },
+            &doc! {
+                "$set": {
+                    "reported": true
+                }
+            }
+        )
+        .map(|_| ())
     }
 
     /// Mark an attachment as having been deleted.
     async fn mark_attachment_as_deleted(&self, id: &str) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": id
-                },
-                doc! {
-                    "$set": {
-                        "deleted": true
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": id
+            },
+            &doc! {
+                "$set": {
+                    "deleted": true
+                }
+            }
+        )
+        .map(|_| ())
     }
 
     /// Mark multiple attachments as having been deleted.
     async fn mark_attachments_as_deleted(&self, ids: &[String]) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_many(
-                doc! {
-                    "_id": {
-                        "$in": ids
-                    }
-                },
-                doc! {
-                    "$set": {
-                        "deleted": true
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_many", COL))
+        query!(
+            self,
+            update_many_raw,
+            COL,
+            doc! {
+                "_id": {
+                    "$in": ids
+                }
+            },
+            &doc! {
+                "$set": {
+                    "deleted": true
+                }
+            }
+        )
+        .map(|_| ())
     }
 
     /// Delete the attachment entry.
@@ -182,19 +181,19 @@ impl AbstractAttachments for MongoDb {
     }
 }
 
-impl MongoDb {
-    pub async fn delete_many_attachments(&self, projection: Document) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_many(
-                projection,
-                doc! {
-                    "$set": {
-                        "deleted": true
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_many", COL))
+impl PostgresDb {
+    pub async fn delete_many_attachments(&self, projection: bson::Document) -> Result<()> {
+        query!(
+            self,
+            update_many_raw,
+            COL,
+            projection,
+            &doc! {
+                "$set": {
+                    "deleted": true
+                }
+            }
+        )
+        .map(|_| ())
     }
 }

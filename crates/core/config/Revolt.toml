@@ -3,9 +3,8 @@ disable_events_dont_use = false
 environment = "dev"
 
 [database]
-# MongoDB connection URL
-# Defaults to the container name specified in self-hosted
-mongodb = "mongodb://database"
+# PostgreSQL connection URL
+postgresql = "postgres://postgres:postgres@postgres/revolt"
 # Redis connection URL
 # Defaults to the container name specified in self-hosted
 redis = "redis://redis/"

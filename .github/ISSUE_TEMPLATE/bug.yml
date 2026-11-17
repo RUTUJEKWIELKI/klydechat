@@ -134,7 +134,7 @@ body:
       label: Additional context
       description: >
         Anything else that might help: workarounds you found, links to related issues,
-        self-hosted configuration details (Redis, MongoDB, LiveKit, SMTP), network environment, etc.
+        self-hosted configuration details (Redis, PostgreSQL, LiveKit, SMTP), network environment, etc.
     validations:
       required: false
 

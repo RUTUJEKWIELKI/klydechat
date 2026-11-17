@@ -2,8 +2,9 @@ use revolt_result::Result;
 
 use crate::{FieldsRole, FieldsServer, PartialRole, PartialServer, Role, Server};
 
-#[cfg(feature = "mongodb")]
-mod mongodb;
+
+#[cfg(feature = "postgres")]
+mod postgres;
 mod reference;
 
 #[async_trait]
@@ -46,4 +47,26 @@ pub trait AbstractServers: Sync + Send {
     ///
     /// Also updates channels and members.
     async fn delete_role(&self, server_id: &str, role_id: &str) -> Result<()>;
+}
+use crate::IntoDocumentPath;
+
+impl IntoDocumentPath for FieldsServer {
+    fn as_path(&self) -> Option<&'static str> {
+        Some(match self {
+            FieldsServer::Banner => "banner",
+            FieldsServer::Categories => "categories",
+            FieldsServer::Description => "description",
+            FieldsServer::Icon => "icon",
+            FieldsServer::SystemMessages => "system_messages",
+        })
+    }
+}
+
+impl IntoDocumentPath for FieldsRole {
+    fn as_path(&self) -> Option<&'static str> {
+        Some(match self {
+            FieldsRole::Colour => "colour",
+            FieldsRole::Icon => "icon",
+        })
+    }
 }

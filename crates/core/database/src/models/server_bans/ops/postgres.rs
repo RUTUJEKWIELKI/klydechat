@@ -1,6 +1,6 @@
 use revolt_result::Result;
 
-use crate::MongoDb;
+use crate::PostgresDb;
 use crate::{MemberCompositeKey, ServerBan};
 
 use super::AbstractServerBans;
@@ -8,7 +8,7 @@ use super::AbstractServerBans;
 static COL: &str = "server_bans";
 
 #[async_trait]
-impl AbstractServerBans for MongoDb {
+impl AbstractServerBans for PostgresDb {
     /// Insert new ban into database
     async fn insert_ban(&self, ban: &ServerBan) -> Result<()> {
         query!(self, insert_one, COL, &ban).map(|_| ())

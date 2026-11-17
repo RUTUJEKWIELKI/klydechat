@@ -72,7 +72,8 @@ static CONFIG_BUILDER: LazyLock<RwLock<Config>> = LazyLock::new(|| {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Database {
-    pub mongodb: String,
+    #[serde(default)]
+    pub postgresql: String,
     pub redis: String,
     pub redis_pubsub: Option<String>,
 }

@@ -351,7 +351,8 @@ mod tests {
         database_test!(|db| async move {
             match db {
                 crate::Database::Reference(_) => return,
-                crate::Database::MongoDb(_) => (),
+                #[cfg(feature = "postgres")]
+                crate::Database::Postgres(_) => (),
             }
             let owner = User::create(&db, "ServerOwner".to_string(), None, None)
                 .await

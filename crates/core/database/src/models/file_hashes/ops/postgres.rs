@@ -1,14 +1,14 @@
 use revolt_result::Result;
 
 use crate::FileHash;
-use crate::MongoDb;
+use crate::PostgresDb;
 
 use super::AbstractAttachmentHashes;
 
 static COL: &str = "attachment_hashes";
 
 #[async_trait]
-impl AbstractAttachmentHashes for MongoDb {
+impl AbstractAttachmentHashes for PostgresDb {
     /// Insert a new attachment hash into the database.
     async fn insert_attachment_hash(&self, hash: &FileHash) -> Result<()> {
         query!(self, insert_one, COL, &hash).map(|_| ())
@@ -32,20 +32,20 @@ impl AbstractAttachmentHashes for MongoDb {
 
     /// Update an attachment hash nonce value.
     async fn set_attachment_hash_nonce(&self, hash: &str, nonce: &str) -> Result<()> {
-        self.col::<FileHash>(COL)
-            .update_one(
-                doc! {
-                    "_id": hash
-                },
-                doc! {
-                    "$set": {
-                        "iv": nonce
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": hash
+            },
+            &doc! {
+                "$set": {
+                    "iv": nonce
+                }
+            }
+        )
+        .map(|_| ())
     }
 
     /// Updates the attachments animated metadata value.
@@ -53,22 +53,22 @@ impl AbstractAttachmentHashes for MongoDb {
     /// The primary use for this is to update the metadata for existing uploaded files, this
     /// can only be used for images.
     async fn set_attachment_hash_animated(&self, hash: &str, animated: bool) -> Result<()> {
-        self.col::<FileHash>(COL)
-            .update_one(
-                doc! {
-                    "_id": hash,
-                    "metadata.type": "Image",
-                    "metadata.animated": { "$exists": false },
-                },
-                doc! {
-                    "$set": {
-                        "metadata.animated": animated
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": hash,
+                "metadata.type": "Image",
+                "metadata.animated": { "$exists": false },
+            },
+            &doc! {
+                "$set": {
+                    "metadata.animated": animated
+                }
+            }
+        )
+        .map(|_| ())
     }
 
     /// Delete attachment hash by id.

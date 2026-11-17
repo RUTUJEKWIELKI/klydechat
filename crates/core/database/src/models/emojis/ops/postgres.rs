@@ -1,15 +1,14 @@
-use bson::Document;
 use revolt_result::Result;
 
 use crate::{Emoji, PartialEmoji};
-use crate::MongoDb;
+use crate::PostgresDb;
 
 use super::AbstractEmojis;
 
 static COL: &str = "emojis";
 
 #[async_trait]
-impl AbstractEmojis for MongoDb {
+impl AbstractEmojis for PostgresDb {
     /// Insert emoji into database.
     async fn insert_emoji(&self, emoji: &Emoji) -> Result<()> {
         query!(self, insert_one, COL, &emoji).map(|_| ())
@@ -23,15 +22,15 @@ impl AbstractEmojis for MongoDb {
     /// Fetch emoji by their ids
     async fn fetch_emojis(&self, ids: &[String]) -> Result<Vec<Emoji>> {
         query!(
-        self,
-        find,
-        COL,
-        doc! {
-            "_id": {
-                "$in": ids
+            self,
+            find,
+            COL,
+            doc! {
+                "_id": {
+                    "$in": ids
+                }
             }
-        }
-    )
+        )
     }
 
     /// Fetch emoji by their parent id
@@ -67,21 +66,21 @@ impl AbstractEmojis for MongoDb {
 
     /// Detach an emoji by its id
     async fn detach_emoji(&self, emoji: &Emoji) -> Result<()> {
-        self.col::<Document>(COL)
-            .update_one(
-                doc! {
-                    "_id": &emoji.id
-                },
-                doc! {
-                    "$set": {
-                        "parent": {
-                            "type": "Detached"
-                        }
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": &emoji.id
+            },
+            &doc! {
+                "$set": {
+                    "parent": {
+                        "type": "Detached"
                     }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+                }
+            }
+        )
+        .map(|_| ())
     }
 }

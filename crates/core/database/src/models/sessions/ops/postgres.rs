@@ -1,13 +1,12 @@
-use crate::{AbstractSessions, MongoDb, Session};
-use bson::{to_bson, to_document};
+use crate::{AbstractSessions, PostgresDb, Session};
+use bson::to_bson;
 use iso8601_timestamp::Timestamp;
-use mongodb::options::UpdateOptions;
 use revolt_result::Result;
 
 const COL: &str = "sessions";
 
 #[async_trait]
-impl AbstractSessions for MongoDb {
+impl AbstractSessions for PostgresDb {
     /// Find session by id
     async fn fetch_session(&self, id: &str) -> Result<Session> {
         query!(self, find_one_by_id, COL, id)?.ok_or_else(|| create_error!(UnknownUser))
@@ -57,40 +56,30 @@ impl AbstractSessions for MongoDb {
 
     /// Save session
     async fn save_session(&self, session: &Session) -> Result<()> {
-        self.col::<Session>(COL)
-            .update_one(
-                doc! {
-                    "_id": &session.id
-                },
-                doc! {
-                    "$set": to_document(session).map_err(|_| create_database_error!("to_document", COL))?,
-                },
-            )
-            .with_options(UpdateOptions::builder().upsert(true).build())
+        self.upsert_full(COL, session)
             .await
-            .map_err(|_| create_database_error!("upsert_one", COL))
-            .map(|_| ())
+            .map_err(|_: ::sqlx::Error| create_database_error!("upsert_one", COL))
     }
 
     /// Delete session
     async fn delete_session(&self, id: &str) -> Result<()> {
-        self.col::<Session>(COL)
-            .delete_one(doc! {
-                "_id": id
-            })
-            .await
-            .map_err(|_| create_database_error!("delete_one", COL))
-            .map(|_| ())
+        query!(
+            self,
+            delete_one_by_id,
+            COL,
+            id
+        )
+        .map(|_| ())
     }
 
     /// Delete session
     async fn delete_all_sessions(&self, user_id: &str, ignore: Option<String>) -> Result<()> {
-        let mut query = doc! {
+        let mut query_doc = doc! {
             "user_id": user_id
         };
 
         if let Some(id) = ignore {
-            query.insert(
+            query_doc.insert(
                 "_id",
                 doc! {
                     "$ne": id
@@ -98,45 +87,41 @@ impl AbstractSessions for MongoDb {
             );
         }
 
-        self.col::<Session>(COL)
-            .delete_many(query)
-            .await
-            .map_err(|_| create_database_error!("delete_one", COL))
-            .map(|_| ())
+        query!(self, delete_many, COL, query_doc).map(|_| ())
     }
 
     /// Remove push subscription for a session by session id
     async fn remove_push_subscription_by_session_id(&self, session_id: &str) -> Result<()> {
-        self.col::<Session>(COL)
-            .update_one(
-                doc! {
-                    "_id": session_id
-                },
-                doc! {
-                    "$unset": {
-                        "subscription": 1
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": session_id
+            },
+            &doc! {
+                "$unset": {
+                    "subscription": 1
+                }
+            }
+        )
+        .map(|_| ())
     }
 
     async fn update_session_last_seen(&self, session_id: &str, when: Timestamp) -> Result<()> {
-        self.col::<Session>(COL)
-            .update_one(
-                doc! {
-                    "_id": session_id
-                },
-                doc! {
-                    "$set": {
-                        "last_seen": to_bson(&when).unwrap()
-                    }
-                },
-            )
-            .await
-            .map(|_| ())
-            .map_err(|_| create_database_error!("update_one", COL))
+        query!(
+            self,
+            update_one_raw,
+            COL,
+            doc! {
+                "_id": session_id
+            },
+            &doc! {
+                "$set": {
+                    "last_seen": to_bson(&when).unwrap()
+                }
+            }
+        )
+        .map(|_| ())
     }
 }

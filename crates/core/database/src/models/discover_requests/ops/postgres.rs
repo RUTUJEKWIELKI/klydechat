@@ -4,7 +4,7 @@ use crate::DiscoverBan;
 use crate::DiscoverRequest;
 use crate::DiscoverRequestStatus;
 use crate::DiscoverRequestType;
-use crate::MongoDb;
+use crate::PostgresDb;
 
 use super::AbstractDiscoverRequest;
 
@@ -12,7 +12,7 @@ static DISCOVER_COL: &str = "discover_requests";
 static DISCOVER_BANS_COL: &str = "discover_bans";
 
 #[async_trait]
-impl AbstractDiscoverRequest for MongoDb {
+impl AbstractDiscoverRequest for PostgresDb {
     /// Insert request into database.
     async fn insert_discover_request(
         &self,
@@ -35,10 +35,14 @@ impl AbstractDiscoverRequest for MongoDb {
                 }
                 _ => Ok(()),
             }?;
-            self.col::<DiscoverRequest>(DISCOVER_COL).update_one(
+            query!(
+                self,
+                update_one_raw,
+                DISCOVER_COL,
                 doc! {"request_type": bson::to_bson(&request_type).expect("failed to serialize"), "request_id": item},
-                doc! {"$set": {"status": bson::to_bson(&DiscoverRequestStatus::Pending).expect("failed to serialize")}},
-            ).await.map_err(|_| create_database_error!("update_one", DISCOVER_COL))?;
+                &doc! {"$set": {"status": bson::to_bson(&DiscoverRequestStatus::Pending).expect("failed to serialize")}}
+            )
+            .map(|_| ())?;
 
             prev.status = DiscoverRequestStatus::Pending;
             Ok(prev)
@@ -48,10 +52,7 @@ impl AbstractDiscoverRequest for MongoDb {
                 request_id: item.to_string(),
                 status: DiscoverRequestStatus::Pending,
             };
-            self.col::<DiscoverRequest>(DISCOVER_COL)
-                .insert_one(ret.clone())
-                .await
-                .map_err(|_| create_database_error!("insert_one", DISCOVER_COL))?;
+            query!(self, insert_one, DISCOVER_COL, &ret).map(|_| ())?;
             Ok(ret)
         }
     }

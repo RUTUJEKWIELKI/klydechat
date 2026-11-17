@@ -1,10 +1,7 @@
-use bson::{Document};
-use futures::StreamExt;
-use mongodb::options::ReturnDocument;
-use revolt_result::Result;
-
 use crate::Invite;
-use crate::MongoDb;
+use crate::PostgresDb;
+use bson::Document;
+use revolt_result::Result;
 
 use super::AbstractChannelInvites;
 
@@ -32,7 +29,7 @@ fn valid_invite_filter() -> Result<Document> {
     })
 }
 #[async_trait]
-impl AbstractChannelInvites for MongoDb {
+impl AbstractChannelInvites for PostgresDb {
     /// Insert a new invite into the database
     async fn insert_invite(&self, invite: &Invite) -> Result<()> {
         query!(self, insert_one, COL, &invite).map(|_| ())
@@ -43,10 +40,7 @@ impl AbstractChannelInvites for MongoDb {
         let mut filter = doc! { "_id": code };
         filter.extend(valid_invite_filter()?);
 
-        self.col::<Invite>(COL)
-            .find_one(filter)
-            .await
-            .map_err(|_| create_database_error!("find_one", COL))?
+        query!(self, find_one, COL, filter)?
             .ok_or_else(|| create_error!(NotFound))
     }
 
@@ -55,20 +49,7 @@ impl AbstractChannelInvites for MongoDb {
         let mut filter = doc! { "server": server_id };
         filter.extend(valid_invite_filter()?);
 
-        Ok(self
-            .col::<Invite>(COL)
-            .find(filter)
-            .await
-            .map_err(|_| create_database_error!("find", COL))?
-            .filter_map(|s| async {
-                if cfg!(debug_assertions) {
-                    Some(s.unwrap())
-                } else {
-                    s.ok()
-                }
-            })
-            .collect()
-            .await)
+        query!(self, find, COL, filter)
     }
 
     /// Delete an invite by its code
@@ -83,18 +64,19 @@ impl AbstractChannelInvites for MongoDb {
         let mut filter = doc! { "_id": code };
         filter.extend(valid_invite_filter()?);
 
-        self.col::<Invite>(COL)
-            .find_one_and_update(filter, doc! { "$inc": { "uses": 1 } })
-            .return_document(ReturnDocument::After)
+        self.find_one_and_update(COL, filter, &doc! { "$inc": { "uses": 1 } })
             .await
-            .map_err(|_| create_database_error!("find_one_and_update", COL))
+            .map_err(|_: ::sqlx::Error| create_database_error!("find_one_and_update", COL))
     }
 
     async fn delete_expired_invites(&self) -> Result<u64> {
         let now = bson::DateTime::now().timestamp_millis();
 
-        self.col::<Invite>(COL)
-            .delete_many(doc! {
+        query!(
+            self,
+            delete_many,
+            COL,
+            doc! {
                 "$or": [
                     { "expires": { "$lte": &now } },
                     {
@@ -104,9 +86,7 @@ impl AbstractChannelInvites for MongoDb {
                         ]
                     },
                 ]
-            })
-            .await
-            .map(|result| result.deleted_count)
-            .map_err(|_| create_database_error!("delete_many", COL))
+            }
+        )
     }
 }
