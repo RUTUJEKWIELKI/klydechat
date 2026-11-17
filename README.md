@@ -189,6 +189,54 @@ This list is non-exhaustive right now.
 | `OTEL_TRACES_SAMPLER`                 | `parentbased_always_on` | Trace sampler, e.g. `parentbased_traceidratio`                       |
 | `OTEL_TRACES_SAMPLER_ARG`             | `1.0`                   | Sampling ratio, e.g. `0.1`                                            |
 
+## Deploying on Vercel
+
+`vercel.json` declares every Rust service (delta, bonfire, autumn, january, gifbox, voice-ingress), the docs site, and the `pushd`/`crond` daemons. Vercel runs none of the backing infrastructure, so you must provision PostgreSQL, Redis, RabbitMQ and S3-compatible storage separately and point the deployment at them through environment variables (see [Environment Variables](#environment-variables) below for the `KLYDE_` override syntax).
+
+Required environment variables in your Vercel project:
+
+| Variable | Example | Notes |
+| --------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
+| `KLYDE_DATABASE__POSTGRESQL` | `postgres://user:pass@db.example.com:5432/revolt?sslmode=require` | Managed PostgreSQL (Neon, Supabase, RDS...); migrations run automatically on start |
+| `KLYDE_DATABASE__REDIS` | `redis://default:pass@redis.example.com:6379` | Redis or KeyDB |
+| `KLYDE_RABBIT__HOST` / `KLYDE_RABBIT__PORT` | `rabbit.example.com` / `5672` | RabbitMQ AMQP endpoint |
+| `KLYDE_RABBIT__USERNAME` / `KLYDE_RABBIT__PASSWORD` | | RabbitMQ credentials |
+| `KLYDE_FILES__S3__ENDPOINT` | `https://s3.us-west-004.backblazeb2.com` | S3-compatible storage (Backblaze B2, Cloudflare R2, AWS S3...) |
+| `KLYDE_FILES__S3__REGION` | `us-west-004` | |
+| `KLYDE_FILES__S3__ACCESS_KEY_ID` / `KLYDE_FILES__S3__SECRET_ACCESS_KEY` | | |
+| `KLYDE_FILES__S3__DEFAULT_BUCKET` | `revolt-uploads` | Bucket must exist before the first upload |
+| `KLYDE_FILES__ENCRYPTION_KEY` | | Generate with `openssl rand -base64 32`; files become unreadable if lost |
+| `KLYDE_HOSTS__API` | `https://your-domain.com/api` | |
+| `KLYDE_HOSTS__EVENTS` | `wss://your-domain.com/ws` | |
+| `KLYDE_HOSTS__AUTUMN` | `https://your-domain.com/autumn` | |
+| `KLYDE_HOSTS__JANUARY` | `https://your-domain.com/january` | |
+| `KLYDE_HOSTS__APP` | `https://your-domain.com` | Web client URL |
+| `SERVICE_PATH_PREFIX` | `/api` | Must be set; delta mounts all routes under this prefix |
+
+Optional:
+
+- `KLYDE_API__SMTP__HOST` / `KLYDE_API__SMTP__USERNAME` / `KLYDE_API__SMTP__PASSWORD` / `KLYDE_API__SMTP__PORT` — email verification; without SMTP, sign-up works but email confirmation is unavailable
+- `KLYDE_PUSHD__VAPID__PUBLIC_KEY` / `KLYDE_PUSHD__VAPID__PRIVATE_KEY` — web push notifications (replace the development keys baked into the default config)
+- `KLYDE_API__SECURITY__CAPTCHA__HCAPTCHA_KEY` / `KLYDE_API__SECURITY__CAPTCHA__HCAPTCHA_SITEKEY` — hCaptcha on auth routes
+
+Request routing (defined in `vercel.json`):
+
+| Path | Service |
+| ------------ | ------------- |
+| `/api/(.*)` | delta (REST API) |
+| `/ws` | bonfire (WebSocket) |
+| `/autumn/(.*)` | autumn (file uploads) |
+| `/january/(.*)` | january (link embeds) |
+| `/gifbox/(.*)` | gifbox (GIF search) |
+| `/ingress/(.*)` | voice-ingress |
+| `/docs/(.*)` | docs (Docusaurus) |
+
+Notes:
+
+- Voice calls need a LiveKit deployment (e.g. LiveKit Cloud) configured under `[api.livekit]`; without it, everything except voice works out of the box.
+- `JANUARY_URL` (delta → january) is wired automatically via the service binding in `vercel.json`.
+- The `pushd` and `crond` daemons each run one instance in `iad1` by default; adjust `instances` in `vercel.json` if you deploy elsewhere.
+
 ## Deployment Guide
 
 ### Cutting new crate releases
