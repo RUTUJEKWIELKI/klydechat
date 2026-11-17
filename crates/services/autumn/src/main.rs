@@ -8,10 +8,10 @@ use axum::{
 use axum_macros::FromRef;
 use revolt_database::{Database, DatabaseInfo};
 use revolt_ratelimits::axum as ratelimiter;
-use tokio::{
-    net::TcpListener,
-    signal::unix::{signal, SignalKind},
-};
+use tokio::net::TcpListener;
+
+#[cfg(unix)]
+use tokio::signal::unix::{signal, SignalKind};
 use tower_http::catch_panic::CatchPanicLayer;
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
@@ -122,12 +122,20 @@ async fn main() -> Result<(), std::io::Error> {
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
     .with_graceful_shutdown(async {
-        let mut terminate =
-            signal(SignalKind::terminate()).expect("sigterm handler");
+        #[cfg(unix)]
+        {
+            let mut terminate =
+                signal(SignalKind::terminate()).expect("sigterm handler");
 
-        tokio::select! {
-            _ = tokio::signal::ctrl_c() => {}
-            _ = terminate.recv() => {}
+            tokio::select! {
+                _ = tokio::signal::ctrl_c() => {}
+                _ = terminate.recv() => {}
+            }
+        }
+
+        #[cfg(windows)]
+        {
+            let _ = tokio::signal::ctrl_c().await;
         }
 
         info!("Service going offline, bye bye");
