@@ -1,4 +1,4 @@
-use revolt_result::{Result, ToRevoltError};
+use revolt_result::Result;
 use serde::Deserialize;
 
 #[derive(Debug)]

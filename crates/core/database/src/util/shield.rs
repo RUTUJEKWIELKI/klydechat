@@ -1,4 +1,3 @@
-use crate::util::ip;
 use reqwest::Client;
 use revolt_config::config;
 use revolt_result::Result;
@@ -87,6 +86,8 @@ impl<'r> rocket::request::FromRequest<'r> for ShieldValidationInput {
     async fn from_request(
         request: &'r rocket::Request<'_>,
     ) -> rocket::request::Outcome<Self, Self::Error> {
+        use crate::util::ip;
+
         rocket::request::Outcome::Success(ShieldValidationInput {
             ip: Some(ip::rocket::to_real_ip(request).await),
             headers: Some(
@@ -120,6 +121,8 @@ impl<S> axum::extract::FromRequestParts<S> for ShieldValidationInput {
         parts: &mut axum::http::request::Parts,
         _state: &S,
     ) -> Result<Self, Self::Rejection> {
+        use crate::util::ip;
+
         Ok(ShieldValidationInput {
             ip: Some(ip::axum::to_real_ip(parts).await),
             headers: Some(
