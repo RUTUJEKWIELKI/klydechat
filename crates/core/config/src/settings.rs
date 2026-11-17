@@ -64,7 +64,11 @@ static CONFIG_BUILDER: LazyLock<RwLock<Config>> = LazyLock::new(|| {
             }
         }
 
-        builder = builder.add_source(Environment::with_prefix("REVOLT").separator("__"));
+        builder = builder.add_source(
+            Environment::with_prefix("KLYDE")
+                .prefix_separator("_")
+                .separator("__"),
+        );
 
         builder.build().unwrap()
     })
