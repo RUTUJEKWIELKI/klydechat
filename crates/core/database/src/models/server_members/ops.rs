@@ -28,7 +28,7 @@ impl ChunkedServerMembersGenerator {
         match self {
             ChunkedServerMembersGenerator::Reference { offset, data } => {
                 if let Some(data) = data {
-                    if data.len() as i32 >= *offset {
+                    if *offset >= data.len() as i32 {
                         None
                     } else {
                         let resp = &data[*offset as usize];

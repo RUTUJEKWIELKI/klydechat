@@ -24,7 +24,7 @@ impl AbstractUsers for PostgresDb {
     async fn fetch_user_by_username(&self, username: &str, discriminator: &str) -> Result<User> {
         self.find_one_where(
             COL,
-            "lower(data->>'username') = lower($1) AND data->>'discriminator' = $2::jsonb",
+            "lower(data->>'username') = lower($1) AND data->'discriminator' = $2::jsonb",
             &[
                 crate::Bind::Text(username.to_string()),
                 crate::Bind::Json(serde_json::Value::String(discriminator.to_string())),

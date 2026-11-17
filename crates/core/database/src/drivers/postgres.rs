@@ -240,7 +240,8 @@ impl PostgresDb {
         collection: &'static str,
         projection: Document,
     ) -> Result<u64, ::sqlx::Error> {
-        let (condition, binds) = translate_filter(&projection, "data")?;
+        let mut binds = Vec::new();
+        let condition = translate_filter(&projection, "data", &mut binds)?;
 
         let sql = format!("SELECT COUNT(*)::bigint FROM \"{}\" WHERE {}", collection, condition);
         let row = bind_query(::sqlx::query(&sql), &binds)
@@ -261,7 +262,8 @@ impl PostgresDb {
         O: Into<Option<PostgresFindOptions>>,
     {
         let options = options.into().unwrap_or_default();
-        let (condition, binds) = translate_filter(&projection, "data")?;
+        let mut binds = Vec::new();
+        let condition = translate_filter(&projection, "data", &mut binds)?;
 
         let mut sql = format!("SELECT data FROM \"{}\" WHERE {}", collection, condition);
         sql.push_str(&build_order_by(options.sort.as_ref()));
@@ -347,7 +349,8 @@ impl PostgresDb {
         O: Into<Option<PostgresFindOptions>>,
     {
         let options = options.into().unwrap_or_default();
-        let (condition, binds) = translate_filter(&projection, "data")?;
+        let mut binds = Vec::new();
+        let condition = translate_filter(&projection, "data", &mut binds)?;
 
         let mut sql = format!("SELECT data FROM \"{}\" WHERE {}", collection, condition);
         sql.push_str(&build_order_by(options.sort.as_ref()));
@@ -407,24 +410,22 @@ impl PostgresDb {
         projection: Document,
         update: &Document,
     ) -> Result<(), ::sqlx::Error> {
-        let (condition, filter_binds) = translate_filter(&projection, "data")?;
-        let (set, mut binds) = translate_update(update)?;
+        let (set, mut binds) = translate_update(update, "data")?;
 
         if set.is_none() {
             return Ok(());
         }
 
-        binds.extend(filter_binds);
+        let condition = translate_filter(&projection, "data", &mut binds)?;
 
-        bind_query(
-            ::sqlx::query(&format!(
-                "UPDATE \"{}\" SET data = {} WHERE {}",
-                collection,
-                set.unwrap(),
-                condition
-            )),
-            &binds,
-        )
+        let sql = format!(
+            "UPDATE \"{}\" SET data = {} WHERE {}",
+            collection,
+            set.unwrap(),
+            condition
+        );
+
+        bind_query(::sqlx::query(&sql), &binds)
         .execute(&self.0)
         .await
         .map(|_| ())
@@ -471,13 +472,12 @@ impl PostgresDb {
             }
         };
 
-        let (condition, filter_binds) = translate_filter(&projection, "data")?;
         let (expression, mut binds) = build_partial_update(&set, &paths);
         if expression.is_none() {
             return Ok(());
         }
 
-        binds.extend(filter_binds);
+        let condition = translate_filter(&projection, "data", &mut binds)?;
 
         bind_query(
             ::sqlx::query(&format!(
@@ -548,19 +548,20 @@ impl PostgresDb {
         update: &Document,
     ) -> Result<Option<T>, ::sqlx::Error> {
         let id_text = serde_json::to_string(id).map_err(|_| db_err("failed to serialise id"))?;
-        let (set, _) = translate_update(update)?;
+        let (set, binds) =
+            translate_update(update, &format!("\"{}\".data", collection))?;
+        let set = set
+            .map(|set| renumber_placeholders(&set, 2))
+            .unwrap_or_else(|| "EXCLUDED.data".to_string());
 
         let sql = format!(
             "INSERT INTO \"{}\" (id, data) VALUES ($1, $2) \
              ON CONFLICT (id) DO UPDATE SET data = {} \
              RETURNING data",
-            collection,
-            set.unwrap_or_else(|| "data".to_string())
+            collection, set
         );
 
-        let row = ::sqlx::query(&sql)
-            .bind(id_text)
-            .bind(base)
+        let row = bind_query(::sqlx::query(&sql).bind(id_text).bind(base), &binds)
             .fetch_optional(&self.0)
             .await?;
 
@@ -575,15 +576,14 @@ impl PostgresDb {
         projection: Document,
         update: &Document,
     ) -> Result<Option<T>, ::sqlx::Error> {
-        let (condition, filter_binds) = translate_filter(&projection, "data")?;
-        let (set, mut binds) = translate_update(update)?;
+        let (set, mut binds) = translate_update(update, "data")?;
 
         if set.is_none() {
             // No-op update, just fetch the document
             return self.find_one(collection, projection).await;
         }
 
-        binds.extend(filter_binds);
+        let condition = translate_filter(&projection, "data", &mut binds)?;
 
         let row = bind_query(
             ::sqlx::query(&format!(
@@ -606,7 +606,8 @@ impl PostgresDb {
         collection: &'static str,
         projection: Document,
     ) -> Result<u64, ::sqlx::Error> {
-        let (condition, binds) = translate_filter(&projection, "data")?;
+        let mut binds = Vec::new();
+        let condition = translate_filter(&projection, "data", &mut binds)?;
 
         bind_query(
             ::sqlx::query(&format!(
@@ -706,7 +707,7 @@ pub fn build_partial_update(
         binds.push(Bind::Json(value.clone()));
         expression = format!(
             "jsonb_set({}, '{}', ${})",
-            expression,
+            ensure_parents(&expression, path),
             to_path_array(path),
             binds.len()
         );
@@ -720,9 +721,12 @@ pub fn build_partial_update(
 }
 
 /// Translate a MongoDB update document into a PostgreSQL SET expression
-pub fn translate_update(update: &Document) -> Result<(Option<String>, Vec<Bind>), ::sqlx::Error> {
+pub fn translate_update(
+    update: &Document,
+    root: &str,
+) -> Result<(Option<String>, Vec<Bind>), ::sqlx::Error> {
     let mut binds = Vec::new();
-    let mut expression = "data".to_string();
+    let mut expression = root.to_string();
 
     // $set
     if let Some(Bson::Document(doc)) = update.get("$set") {
@@ -730,7 +734,7 @@ pub fn translate_update(update: &Document) -> Result<(Option<String>, Vec<Bind>)
             binds.push(Bind::Json(bson_to_json(value)));
             expression = format!(
                 "jsonb_set({}, '{}', ${})",
-                expression,
+                ensure_parents(&expression, path),
                 to_path_array(path),
                 binds.len()
             );
@@ -751,22 +755,24 @@ pub fn translate_update(update: &Document) -> Result<(Option<String>, Vec<Bind>)
                 Bson::Document(inner) if inner.contains_key("$each") => {
                     let each = inner.get("$each").expect("checked above");
                     binds.push(Bind::Json(bson_to_json(each)));
+                    let base = ensure_parents(&expression, path);
                     expression = format!(
-                        "jsonb_set({}, '{}', COALESCE({} #> '{}', '[]'::jsonb) || ${})",
-                        expression,
+                        "jsonb_set({}, '{}', COALESCE(NULLIF({} #> '{}', 'null'::jsonb), '[]'::jsonb) || ${})",
+                        base,
                         to_path_array(path),
-                        expression,
+                        base,
                         to_path_array(path),
                         binds.len()
                     );
                 }
                 _ => {
                     binds.push(Bind::Json(bson_to_json(value)));
+                    let base = ensure_parents(&expression, path);
                     expression = format!(
-                        "jsonb_set({}, '{}', COALESCE({} #> '{}', '[]'::jsonb) || jsonb_build_array(${}))",
-                        expression,
+                        "jsonb_set({}, '{}', COALESCE(NULLIF({} #> '{}', 'null'::jsonb), '[]'::jsonb) || jsonb_build_array(${}))",
+                        base,
                         to_path_array(path),
-                        expression,
+                        base,
                         to_path_array(path),
                         binds.len()
                     );
@@ -782,38 +788,40 @@ pub fn translate_update(update: &Document) -> Result<(Option<String>, Vec<Bind>)
                 Bson::Document(inner) if inner.contains_key("$each") => {
                     let each = inner.get("$each").expect("checked above");
                     binds.push(Bind::Json(bson_to_json(each)));
+                    let base = ensure_parents(&expression, path);
                     expression = format!(
                         "jsonb_set({}, '{}', \
-                         CASE WHEN COALESCE({} #> '{}', '[]'::jsonb) @> ${} \
+                         CASE WHEN COALESCE(NULLIF({} #> '{}', 'null'::jsonb), '[]'::jsonb) @> ${} \
                          THEN {} #> '{}' \
-                         ELSE COALESCE({} #> '{}', '[]'::jsonb) || ${} END)",
-                        expression,
+                         ELSE COALESCE(NULLIF({} #> '{}', 'null'::jsonb), '[]'::jsonb) || ${} END)",
+                        base,
                         to_path_array(path),
-                        expression,
+                        base,
                         to_path_array(path),
                         binds.len(),
-                        expression,
+                        base,
                         to_path_array(path),
-                        expression,
+                        base,
                         to_path_array(path),
                         binds.len()
                     );
                 }
                 _ => {
                     binds.push(Bind::Json(bson_to_json(value)));
+                    let base = ensure_parents(&expression, path);
                     expression = format!(
                         "jsonb_set({}, '{}', \
-                         CASE WHEN COALESCE({} #> '{}', '[]'::jsonb) @> jsonb_build_array(${}) \
+                         CASE WHEN COALESCE(NULLIF({} #> '{}', 'null'::jsonb), '[]'::jsonb) @> jsonb_build_array(${}) \
                          THEN {} #> '{}' \
-                         ELSE COALESCE({} #> '{}', '[]'::jsonb) || jsonb_build_array(${}) END)",
-                        expression,
+                         ELSE COALESCE(NULLIF({} #> '{}', 'null'::jsonb), '[]'::jsonb) || jsonb_build_array(${}) END)",
+                        base,
                         to_path_array(path),
-                        expression,
+                        base,
                         to_path_array(path),
                         binds.len(),
-                        expression,
+                        base,
                         to_path_array(path),
-                        expression,
+                        base,
                         to_path_array(path),
                         binds.len()
                     );
@@ -826,12 +834,13 @@ pub fn translate_update(update: &Document) -> Result<(Option<String>, Vec<Bind>)
     if let Some(Bson::Document(doc)) = update.get("$pull") {
         for (path, condition) in doc {
             let predicate = translate_pull_condition(condition, &mut binds)?;
+            let base = ensure_parents(&expression, path);
             expression = format!(
                 "jsonb_set({}, '{}', \
                  COALESCE((SELECT jsonb_agg(e) FROM jsonb_array_elements( \
                  CASE WHEN jsonb_typeof({} #> '{}') = 'array' THEN {} #> '{}' ELSE '[]'::jsonb END) e \
                  WHERE NOT ({})), '[]'::jsonb))",
-                expression,
+                base,
                 to_path_array(path),
                 expression,
                 to_path_array(path),
@@ -846,11 +855,12 @@ pub fn translate_update(update: &Document) -> Result<(Option<String>, Vec<Bind>)
     if let Some(Bson::Document(doc)) = update.get("$inc") {
         for (path, value) in doc {
             binds.push(Bind::Json(bson_to_json(value)));
+            let base = ensure_parents(&expression, path);
             expression = format!(
                 "jsonb_set({}, '{}', to_jsonb( \
                  COALESCE(CASE WHEN jsonb_typeof({} #> '{}') = 'number' \
                  THEN ({} #> '{}')::numeric END, 0) + (${}::jsonb)::numeric))",
-                expression,
+                base,
                 to_path_array(path),
                 expression,
                 to_path_array(path),
@@ -861,7 +871,7 @@ pub fn translate_update(update: &Document) -> Result<(Option<String>, Vec<Bind>)
         }
     }
 
-    if binds.is_empty() && expression == "data" {
+    if binds.is_empty() && expression == root {
         return Ok((None, binds));
     }
 
@@ -916,6 +926,51 @@ fn translate_pull_condition(condition: &Bson, binds: &mut Vec<Bind>) -> Result<S
     }
 }
 
+/// Wrap a base expression so that every parent object along `path` exists
+///
+/// `jsonb_set` does not create intermediate objects, so parents missing from
+/// the stored document must be initialised before setting a nested value.
+fn ensure_parents(base: &str, path: &str) -> String {
+    let segments: Vec<&str> = path.split('.').collect();
+    let mut expr = base.to_string();
+
+    for i in 1..segments.len() {
+        let parent = to_path_array(&segments[..i].join("."));
+        expr = format!(
+            "jsonb_set({}, '{}', COALESCE(NULLIF(({}) #> '{}', 'null'::jsonb), '{{}}'::jsonb))",
+            expr, parent, base, parent
+        );
+    }
+
+    expr
+}
+
+/// Shift `$N` placeholders in a SQL fragment by the given offset
+fn renumber_placeholders(sql: &str, offset: usize) -> String {
+    let mut out = String::with_capacity(sql.len());
+    let mut chars = sql.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if c == '$' {
+            let digits: String = chars.clone().take_while(|c| c.is_ascii_digit()).collect();
+
+            if !digits.is_empty() {
+                for _ in 0..digits.len() {
+                    chars.next();
+                }
+
+                let n: usize = digits.parse().unwrap();
+                out.push_str(&format!("${}", n + offset));
+                continue;
+            }
+        }
+
+        out.push(c);
+    }
+
+    out
+}
+
 /// Convert a dotted MongoDB path into a PostgreSQL text array literal for path operators
 fn to_path_array(path: &str) -> String {
     let segments: Vec<String> = path
@@ -968,10 +1023,9 @@ fn build_order_by(sort: Option<&Document>) -> String {
 pub fn translate_filter(
     filter: &Document,
     root: &str,
-) -> Result<(String, Vec<Bind>), ::sqlx::Error> {
-    let mut binds = Vec::new();
-    let condition = translate_filter_inner(filter, root, &mut binds)?;
-    Ok((condition, binds))
+    binds: &mut Vec<Bind>,
+) -> Result<String, ::sqlx::Error> {
+    translate_filter_inner(filter, root, binds)
 }
 
 fn translate_filter_inner(

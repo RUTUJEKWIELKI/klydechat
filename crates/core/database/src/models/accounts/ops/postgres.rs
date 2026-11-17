@@ -100,7 +100,7 @@ impl AbstractAccounts for PostgresDb {
         let expiry_3 = ts_json(now + Duration::minutes(1));
 
         let sql = "UPDATE accounts SET data = jsonb_set( \
-                   jsonb_set(data, '{lockout,attempts}', \
+                   jsonb_set(jsonb_set(data, '{lockout}', COALESCE(NULLIF(data->'lockout', 'null'::jsonb), '{}'::jsonb)), '{lockout,attempts}', \
                    to_jsonb(COALESCE(CASE WHEN jsonb_typeof(data #> '{lockout,attempts}') = 'number' \
                    THEN (data #> '{lockout,attempts}')::numeric END, 0) + 1)), \
                    '{lockout,expiry}', \
@@ -111,7 +111,7 @@ impl AbstractAccounts for PostgresDb {
                    THEN (data #> '{lockout,attempts}')::numeric END, 0) + 1 = 4 THEN $2::jsonb \
                    WHEN COALESCE(CASE WHEN jsonb_typeof(data #> '{lockout,attempts}') = 'number' \
                    THEN (data #> '{lockout,attempts}')::numeric END, 0) + 1 = 3 THEN $3::jsonb \
-                   ELSE data #> '{lockout,expiry}' END) \
+                   ELSE 'null'::jsonb END) \
                    WHERE id = $4 RETURNING data";
 
         let row = ::sqlx::query(sql)
