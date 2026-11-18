@@ -58,6 +58,10 @@
   },
   "rewrites": [
     {
+      "source": "/api",
+      "destination": { "service": "delta" }
+    },
+    {
       "source": "/api/(.*)",
       "destination": { "service": "delta" }
     },
@@ -84,6 +88,10 @@
     {
       "source": "/ingress/(.*)",
       "destination": { "service": "voice-ingress" }
+    },
+    {
+      "source": "/docs",
+      "destination": { "service": "docs" }
     },
     {
       "source": "/docs/(.*)",

@@ -47,5 +47,10 @@ RUN sh /tmp/build-image-layer.sh apps
 FROM gcr.io/distroless/cc-debian13:nonroot
 COPY --from=builder /home/rust/src/target/release/revolt-crond ./
 
+# Runtime shared libraries not present in distroless
+COPY --from=builder /usr/lib/*/libssl.so.3* /usr/lib/
+COPY --from=builder /usr/lib/*/libcrypto.so.3* /usr/lib/
+COPY --from=builder /usr/lib/*/libdav1d.so.7* /usr/lib/
+
 USER nonroot
 CMD ["./revolt-crond"]
