@@ -2,12 +2,12 @@
 <h1>
   Klyde Backend
   
-  [![Stars](https://img.shields.io/github/stars/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/stargazers)
-  [![Forks](https://img.shields.io/github/forks/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/network/members)
-  [![Pull Requests](https://img.shields.io/github/issues-pr/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/pulls)
-  [![Issues](https://img.shields.io/github/issues/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/issues)
-  [![Contributors](https://img.shields.io/github/contributors/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/graphs/contributors)
-  [![License](https://img.shields.io/github/license/klydechat/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/blob/main/LICENSE)
+  [![Stars](https://img.shields.io/github/stars/RUTUJEKWIELKI/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/stargazers)
+  [![Forks](https://img.shields.io/github/forks/RUTUJEKWIELKI/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/network/members)
+  [![Pull Requests](https://img.shields.io/github/issues-pr/RUTUJEKWIELKI/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/pulls)
+  [![Issues](https://img.shields.io/github/issues/RUTUJEKWIELKI/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/issues)
+  [![Contributors](https://img.shields.io/github/contributors/RUTUJEKWIELKI/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/graphs/contributors)
+  [![License](https://img.shields.io/github/license/RUTUJEKWIELKI/klydechat?style=flat-square&logoColor=white)](https://github.com/RUTUJEKWIELKI/klydechat/blob/main/LICENSE)
 </h1>
 The services and libraries that power the Klyde service.<br/>
 <br/>
