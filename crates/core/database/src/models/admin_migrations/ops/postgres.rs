@@ -16,7 +16,9 @@ impl AbstractMigrations for PostgresDb {
 
         PostgresDb::create_database(self)
             .await
-            .map_err(|_| ())?;
+            .map_err(|err| {
+                error!("Failed to create database: {err:?}");
+            })?;
 
         ::sqlx::query(
             "INSERT INTO migrations (id, data) VALUES ('1', '{\"_id\": 1, \"revision\": 0}'::jsonb) \
@@ -24,7 +26,9 @@ impl AbstractMigrations for PostgresDb {
         )
         .execute(&self.0)
         .await
-        .map_err(|_| ())?;
+        .map_err(|err| {
+            error!("Failed to insert initial migration: {err:?}");
+        })?;
 
         Ok(())
     }

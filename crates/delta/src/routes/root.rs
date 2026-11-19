@@ -42,7 +42,7 @@ pub struct VoiceFeature {
 
 /// # Feature Configuration
 #[derive(Serialize, JsonSchema, Debug)]
-pub struct RevoltFeatures {
+pub struct KlydeFeatures {
     /// hCaptcha configuration
     pub captcha: CaptchaFeature,
     /// Whether email verification is enabled
@@ -160,12 +160,11 @@ impl UserLimits {
 
 /// # Server Configuration
 #[derive(Serialize, JsonSchema, Debug)]
-pub struct RevoltConfig {
+pub struct KlydeConfig {
     /// Klyde API Version
     pub klyde: String,
-    pub revolt: String,
     /// Features enabled on this Klyde node
-    pub features: RevoltFeatures,
+    pub features: KlydeFeatures,
     /// WebSocket URL
     pub ws: String,
     /// URL pointing to the client serving this node
@@ -176,16 +175,15 @@ pub struct RevoltConfig {
 
 /// # Query Node
 ///
-/// Fetch the server configuration for this Revolt instance.
+/// Fetch the server configuration for this Klyde instance.
 #[openapi(tag = "Core")]
 #[get("/")]
-pub async fn root() -> Result<Json<RevoltConfig>> {
+pub async fn root() -> Result<Json<KlydeConfig>> {
     let config = config().await;
 
-    Ok(Json(RevoltConfig {
+    Ok(Json(KlydeConfig {
         klyde: env!("CARGO_PKG_VERSION").to_string(),
-        revolt: env!("CARGO_PKG_VERSION").to_string(),
-        features: RevoltFeatures {
+        features: KlydeFeatures {
             captcha: CaptchaFeature {
                 enabled: !config.api.security.captcha.hcaptcha_key.is_empty(),
                 key: config.api.security.captcha.hcaptcha_sitekey.clone(),

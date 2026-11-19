@@ -15,11 +15,11 @@ redis = "redis://redis/"
 # See https://github.com/klydechat/self-hosted/blob/main/Caddyfile
 #
 # Remember to change these to https/wss where appropriate in production!
-app = "http://local.revolt.chat"
-api = "http://local.revolt.chat/api"
-events = "ws://local.revolt.chat/ws"
-autumn = "http://local.revolt.chat/autumn"
-january = "http://local.revolt.chat/january"
+app = "http://local.klyde.chat"
+api = "http://local.klyde.chat/api"
+events = "ws://local.klyde.chat/ws"
+autumn = "http://local.klyde.chat/autumn"
+january = "http://local.klyde.chat/january"
 assets = ""
 voso_legacy = ""
 voso_legacy_ws = ""

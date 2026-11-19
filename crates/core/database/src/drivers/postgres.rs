@@ -84,15 +84,15 @@ impl PostgresDb {
         let indexes: &[(&str, &str)] = &[
             (
                 "messages",
-                "CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages (data->>'channel', id)",
+                "CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages ((data->>'channel'), id)",
             ),
             (
                 "messages",
-                "CREATE INDEX IF NOT EXISTS idx_messages_author ON messages (data->>'author')",
+                "CREATE INDEX IF NOT EXISTS idx_messages_author ON messages ((data->>'author'))",
             ),
             (
                 "messages",
-                "CREATE INDEX IF NOT EXISTS idx_messages_channel_pinned ON messages (data->>'channel', data->>'pinned')",
+                "CREATE INDEX IF NOT EXISTS idx_messages_channel_pinned ON messages ((data->>'channel'), (data->>'pinned'))",
             ),
             (
                 "messages",
@@ -100,39 +100,39 @@ impl PostgresDb {
             ),
             (
                 "channel_unreads",
-                "CREATE INDEX IF NOT EXISTS idx_channel_unreads_user ON channel_unreads (data#>>'{_id,user}')",
+                "CREATE INDEX IF NOT EXISTS idx_channel_unreads_user ON channel_unreads ((data#>>'{_id,user}'))",
             ),
             (
                 "channel_unreads",
-                "CREATE INDEX IF NOT EXISTS idx_channel_unreads_compound ON channel_unreads (data#>>'{_id,channel}', data#>>'{_id,user}')",
+                "CREATE INDEX IF NOT EXISTS idx_channel_unreads_compound ON channel_unreads ((data#>>'{_id,channel}'), (data#>>'{_id,user}'))",
             ),
             (
                 "server_members",
-                "CREATE INDEX IF NOT EXISTS idx_server_members_server ON server_members (data#>>'{_id,server}')",
+                "CREATE INDEX IF NOT EXISTS idx_server_members_server ON server_members ((data#>>'{_id,server}'))",
             ),
             (
                 "server_members",
-                "CREATE INDEX IF NOT EXISTS idx_server_members_user ON server_members (data#>>'{_id,user}')",
+                "CREATE INDEX IF NOT EXISTS idx_server_members_user ON server_members ((data#>>'{_id,user}'))",
             ),
             (
                 "server_bans",
-                "CREATE INDEX IF NOT EXISTS idx_server_bans_server ON server_bans (data#>>'{_id,server}')",
+                "CREATE INDEX IF NOT EXISTS idx_server_bans_server ON server_bans ((data#>>'{_id,server}'))",
             ),
             (
                 "attachments",
-                "CREATE INDEX IF NOT EXISTS idx_attachments_hash ON attachments (data->>'hash')",
+                "CREATE INDEX IF NOT EXISTS idx_attachments_hash ON attachments ((data->>'hash'))",
             ),
             (
                 "attachments",
-                "CREATE INDEX IF NOT EXISTS idx_attachments_used_for ON attachments (data#>>'{used_for,id}')",
+                "CREATE INDEX IF NOT EXISTS idx_attachments_used_for ON attachments ((data#>>'{used_for,id}'))",
             ),
             (
                 "attachments",
-                "CREATE INDEX IF NOT EXISTS idx_attachments_message ON attachments (data->>'message_id')",
+                "CREATE INDEX IF NOT EXISTS idx_attachments_message ON attachments ((data->>'message_id'))",
             ),
             (
                 "attachment_hashes",
-                "CREATE INDEX IF NOT EXISTS idx_attachment_hashes_processed ON attachment_hashes (data->>'processed_hash')",
+                "CREATE INDEX IF NOT EXISTS idx_attachment_hashes_processed ON attachment_hashes ((data->>'processed_hash'))",
             ),
             (
                 "users",
@@ -140,11 +140,11 @@ impl PostgresDb {
             ),
             (
                 "sessions",
-                "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (data->>'user_id')",
+                "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions ((data->>'user_id'))",
             ),
             (
                 "sessions",
-                "CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions (data->>'token')",
+                "CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions ((data->>'token'))",
             ),
             (
                 "accounts",
@@ -152,31 +152,31 @@ impl PostgresDb {
             ),
             (
                 "emojis",
-                "CREATE INDEX IF NOT EXISTS idx_emojis_parent ON emojis (data#>>'{parent,id}')",
+                "CREATE INDEX IF NOT EXISTS idx_emojis_parent ON emojis ((data#>>'{parent,id}'))",
             ),
             (
                 "servers",
-                "CREATE INDEX IF NOT EXISTS idx_servers_owner ON servers (data->>'owner')",
+                "CREATE INDEX IF NOT EXISTS idx_servers_owner ON servers ((data->>'owner'))",
             ),
             (
                 "bots",
-                "CREATE INDEX IF NOT EXISTS idx_bots_owner ON bots (data->>'owner')",
+                "CREATE INDEX IF NOT EXISTS idx_bots_owner ON bots ((data->>'owner'))",
             ),
             (
                 "audit_logs",
-                "CREATE INDEX IF NOT EXISTS idx_audit_logs_server ON audit_logs (data->>'server')",
+                "CREATE INDEX IF NOT EXISTS idx_audit_logs_server ON audit_logs ((data->>'server'))",
             ),
             (
                 "channel_invites",
-                "CREATE INDEX IF NOT EXISTS idx_channel_invites_server ON channel_invites (data->>'server')",
+                "CREATE INDEX IF NOT EXISTS idx_channel_invites_server ON channel_invites ((data->>'server'))",
             ),
             (
                 "ratelimit_events",
-                "CREATE INDEX IF NOT EXISTS idx_ratelimit_events_target ON ratelimit_events (data->>'target_id')",
+                "CREATE INDEX IF NOT EXISTS idx_ratelimit_events_target ON ratelimit_events ((data->>'target_id'))",
             ),
             (
                 "channel_webhooks",
-                "CREATE INDEX IF NOT EXISTS idx_channel_webhooks_channel ON channel_webhooks (data->>'channel_id')",
+                "CREATE INDEX IF NOT EXISTS idx_channel_webhooks_channel ON channel_webhooks ((data->>'channel_id'))",
             ),
         ];
 
